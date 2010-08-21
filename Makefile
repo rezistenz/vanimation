@@ -1,15 +1,13 @@
-#Текущий компилятор
+#Compiler
 CXX = g++
 
-#Опции компиляции для разработки
 CFLAGS = -g -Wall -ansi
-#Опции компиляции для рабочей версии
 #CFLAGS = -O -Wall -ansi
 
 OBJ = main.o scene.o clip.o frame.o scenemodel.o sceneview.o \
  scenecontroller.o consolesceneview.o
 
-#цель all
+#goal all
 all: prog
 prog: $(OBJ)
 	$(CXX) $(CFLAGS) -o prog $(OBJ)
@@ -27,20 +25,17 @@ scenemodel.o: scenemodel.cpp defines.h scenemodel.h scene.h clip.h \
 sceneview.o: sceneview.cpp defines.h sceneview.h scenemodel.h scene.h \
  clip.h frame.h scenecontroller.h
 
-#цель clean
+#goal clean
 clean: 
 	-rm -v prog *.o *~
 
-#Создать дистрибутивный tar-файл для этой программы
+#make dist
 dist: prog-1.0.tar.gz
 prog-1.0.tar.gz: prog
 	-rm -rf prog-1.0
 	mkdir prog-1.0
 	cp *.cpp *.h Makefile prog-1.0
 	tar zcvf $@ prog-1.0
-#Отчистить дистрибутив
+#clear dist
 distclean:
 	-rm -rf prog-1.0 prog-1.0.tar.gz
-	
-
-
