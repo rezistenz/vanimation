@@ -9,7 +9,7 @@ SceneView::SceneView(){
 }
 
 SceneView::~SceneView(){
-    delete this->controller;
+    //delete this->controller;
 }
 
 SceneView::SceneView(SceneModel *model){
