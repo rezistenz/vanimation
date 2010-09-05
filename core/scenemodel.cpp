@@ -41,6 +41,21 @@ ModelState SceneModel::getStateModel(StateModelCommand cmd){
         }
         break;
 
+    case GET_CLIP_FRAME_COUNT:{
+	    modelState.state=CLIP_FRAME_COUNT;
+	    Clip* clip=this->scene->getClip(cmd.intData);
+	    modelState.intData=clip->getFramesCount();
+	}
+	break;
+
+    case GET_CLIP_FRAME_TIME:{
+	    modelState.state=CLIP_FRAME_TIME;
+	    Clip* clip=this->scene->getClip(cmd.pointData.x);
+
+	    modelState.timeData=clip->getFrameTime(cmd.pointData.y);
+	}
+	break;
+
     default:{
             cerr<<"ERROR! StateModelCommand not found."<<endl;
             exit(EXIT_FAILURE);

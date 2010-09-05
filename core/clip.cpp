@@ -64,6 +64,11 @@ int Clip::getFramesCount(){
 	return frames.size();
 }
 
+TIME_TYPE Clip::getFrameTime(int index){
+    Frame * frame=frames.at(index);
+    return frame->getTime();
+}
+
 void Clip::displayFrames(){
 	vector< Frame* >::iterator iter;
 	int i=0;

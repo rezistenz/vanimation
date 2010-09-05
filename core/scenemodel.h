@@ -10,19 +10,29 @@ using namespace std;
 //STATE MODEL COMMAND
 enum StateModelCommands{
 	GET_CLIP_COUNT,
-	GET_MAX_TIME
+	GET_MAX_TIME,
+	GET_CLIP_FRAME_COUNT,
+	GET_CLIP_FRAME_TIME
+};
+
+struct PointData{
+    int x;
+    int y;
 };
 
 struct StateModelCommand{
 	StateModelCommands CMD;
 	int intData;
 	TIME_TYPE timeData;
+	PointData pointData;
 };
 
 //MODEL STATE
 enum ModelStates{
 	CLIP_COUNT,
-	MAX_TIME
+	MAX_TIME,
+	CLIP_FRAME_COUNT,
+	CLIP_FRAME_TIME
 };
 
 struct ModelState{

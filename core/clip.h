@@ -17,6 +17,7 @@ class Clip {
 		void addFrame(TIME_TYPE time);
 		void delFrame(int index);
 		int getFramesCount();
+		TIME_TYPE getFrameTime(int index);
 		void displayFrames();
 
 		int moveFrameForward(int index); //return new index;
