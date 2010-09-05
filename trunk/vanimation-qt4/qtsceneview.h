@@ -12,6 +12,7 @@ public:
     void refreshSceneView();
 private:
     TimelineWidget *timelineWidget;
+    void refreshTimeline();
 };
 
 #endif // QTSCENEVIEW_H
