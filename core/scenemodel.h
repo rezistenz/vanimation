@@ -47,7 +47,8 @@ enum UpdateModelCommands{
 	DEL_CLIP,
 	PLAY_CLIP,
         PLAY_ALL_CLIPS,
-        SET_MAX_TIME
+	SET_MAX_TIME,
+	ADD_FRAME_TO_CLIP
 };
 
 struct UpdateModelCommand{
