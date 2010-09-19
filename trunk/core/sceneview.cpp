@@ -16,7 +16,7 @@ SceneView::SceneView(SceneModel *model){
     assert(model!=NULL);
 
     this->model=model;
-    controller=new SceneController();
+    //controller=new SceneController();
 }
 
 SceneView::SceneView(SceneModel *model, SceneController *controller){

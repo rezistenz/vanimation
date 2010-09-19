@@ -48,7 +48,10 @@ void QtSceneView::refreshTimeline(){
 	cmd.CMD=GET_MAX_TIME;
 	state=this->getSceneModel()->getStateModel(cmd);
 	TIME_TYPE maxTime=state.timeData;
+	//set maxtime for visual clip
+	this->timelineWidget->setMaxTimeClip(indexClip,maxTime);
 
+	//compare clip frames
 	this->timelineWidget->clearClipFameTimes(indexClip);
 	for(int indexFrame=0;indexFrame<countFrames;indexFrame++){
 	    //get time of fames from scene clip
@@ -62,11 +65,10 @@ void QtSceneView::refreshTimeline(){
 	    TIME_TYPE timeFrame=state.timeData;
 
 	    //set time of frams for visual clip
-	    this->timelineWidget->addClipFrameTime(indexClip,timeFrame);
-	    //resize visual clip
-	    this->timelineWidget->setMaxTimeClip(indexClip,maxTime);
-	}
+	    this->timelineWidget->addClipFrameTime(indexClip,timeFrame);    
+	}	
     }
+
     this->timelineWidget->adjustSizeClips();
 }
 

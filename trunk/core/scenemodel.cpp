@@ -92,6 +92,14 @@ void SceneModel::updateModel(UpdateModelCommand cmd){
         }
         break;
 
+    case ADD_FRAME_TO_CLIP:{
+	    //cmd.intData - index of clip
+	    //cmd.timeData - time for frame
+	    Clip* clip=this->scene->getClip(cmd.intData);
+	    clip->addFrame(cmd.timeData);
+	}
+	break;
+
     default:{
             cerr<<"ERROR! UpdateModelCommand not found."<<endl;
             exit(EXIT_FAILURE);
