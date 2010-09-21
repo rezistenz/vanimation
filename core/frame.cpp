@@ -17,6 +17,10 @@ Frame::Frame(TIME_TYPE nTime){
 
 Frame::~Frame(){
 	cout<<"del frame "<<this<<endl;
+	while (!shapes.empty()){
+		delete shapes.back();
+		shapes.pop_back();
+	}
 }		
 
 TIME_TYPE Frame::getTime(){
@@ -29,4 +33,33 @@ void Frame::setTime(TIME_TYPE nTime){
 
 void Frame::draw(){
 	cout<<"draw "<<this<<" "<<time<<endl;
+}
+
+int Frame::getShapesCount(){
+    return shapes.size();
+}
+
+void Frame::setShapesCount(int count){
+    int oldCount=shapes.size();
+    int newCount=count;
+    int dCount=newCount-oldCount;
+
+    if (dCount>0){
+	for(int i=0;i<dCount;i++){
+	    SceneShape *shape=new SceneShape();
+	    shapes.push_back(shape);
+	}
+    }else{
+	dCount*=(-1);
+	for(int i=0;i<dCount;i++){
+	    SceneShape *shape=shapes.back();
+	    delete shape;
+	    shapes.pop_back();
+	}
+    }
+}
+
+SceneShape * Frame::getShape(int index){
+    SceneShape * shape=shapes.at(index);
+    return shape;
 }

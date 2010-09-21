@@ -45,13 +45,17 @@ MainWindow::MainWindow(QWidget *parent) :
     */
     model=new SceneModel();
     model->setScene(scene);
-    view=new QtSceneView(tl);
     controller=new QtSceneController();
+    view=new QtSceneView();
 
     view->setSceneController(controller);
     view->setSceneModel(model);
     controller->setSceneModel(model);
     model->setSceneView(view);
+
+    view->setCanvasWidget(cw);
+    view->setTimeLineWidget(tl);
+    view->configureTimeLineAndCanvasWidget();
 
     //view->refreshSceneView();
 

@@ -213,3 +213,39 @@ void Clip::pause(){
 	
 }
 
+void Clip::setShapesCountForFrame(int frameIndex, int countShapes){
+    Frame *frame=this->frames.at(frameIndex);
+    frame->setShapesCount(countShapes);
+}
+
+void Clip::setShapeForFrame(int frameIndex, int shapeIndex, SceneShape sceneShape){
+    Frame *frame=this->frames.at(frameIndex);
+    SceneShape * frameShape=frame->getShape(shapeIndex);
+
+    frameShape->x=sceneShape.x;
+    frameShape->y=sceneShape.y;
+    frameShape->width=sceneShape.width;
+    frameShape->height=sceneShape.height;
+    frameShape->type=sceneShape.type;
+}
+
+int Clip::getShapesCountForFrame(int frameIndex){
+    Frame *frame=this->frames.at(frameIndex);
+    int shapesCount=frame->getShapesCount();
+
+    return shapesCount;
+}
+
+SceneShape Clip::getShapeForFrame(int frameIndex, int shapeIndex){
+    Frame *frame=this->frames.at(frameIndex);
+    SceneShape* frameShape=frame->getShape(shapeIndex);
+
+    SceneShape sceneShape;
+    sceneShape.x=frameShape->x;
+    sceneShape.y=frameShape->y;
+    sceneShape.width=frameShape->width;
+    sceneShape.height=frameShape->height;
+    sceneShape.type=frameShape->type;
+
+    return sceneShape;
+}

@@ -20,6 +20,11 @@ class Clip {
 		TIME_TYPE getFrameTime(int index);
 		void displayFrames();
 
+		void setShapesCountForFrame(int frameIndex, int countShapes);
+		void setShapeForFrame(int frameIndex, int shapeIndex, SceneShape sceneShape);
+		int getShapesCountForFrame(int frameIndex);
+		SceneShape getShapeForFrame(int frameIndex, int shapeIndex);
+
 		int moveFrameForward(int index); //return new index;
 		int moveFrameBack(int index); //return new index;
 		int moveFrameToTime(int index,TIME_TYPE time);
