@@ -82,6 +82,10 @@ void Canvas::setCanvasColor(QColor &color){
     (*canvasColor)=color;
 }
 
+void Canvas::setSelectShapeIndex(int index){
+    this->selectShapeIndex=index;
+}
+
 void Canvas::drawCanvas(QPainter &painter){
     QPen pen(Qt::NoPen);
     QBrush brash(*canvasColor);
@@ -283,6 +287,20 @@ void Canvas::mouseMoveEvent(QMouseEvent * event){
     switch (currentOperation) {
     case SELECT:{
 	    if (changing){
+		/*QPoint newPosMouse=event->pos();
+		Shape * shape=getShape(this->selectShapeIndex);
+
+		if (newPosMouse.x() <= shape->topLeft().x()+10){
+		    endPosMouse.setX(shape->topLeft().x()+10);
+		}else{
+		    endPosMouse.setX(newPosMouse.x());
+		}
+
+		if (newPosMouse.y() <= shape->topLeft().y()+10){
+		    endPosMouse.setY(shape->topLeft().y()+10);
+		}else{
+		    endPosMouse.setY(newPosMouse.y());
+		}*/
 		endPosMouse=event->pos();
 	    }
 
@@ -326,6 +344,10 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event){
 		    if(endPosMouse!=startPosMouse){
 			Shape * shape=getShape(this->selectShapeIndex);
 			shape->setBottomRight(endPosMouse+dPointMouseShape);
+
+			QRect rectNormalised=shape->normalized();
+			shape->setTopLeft(rectNormalised.topLeft());
+			shape->setBottomRight(rectNormalised.bottomRight());
 		    }
 		    changing=false;
 		}else{
@@ -339,6 +361,11 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event){
 		endPosMouse=event->pos();
 		if(endPosMouse!=startPosMouse){
 		    Shape * shape=createShape(currentShapeType,QRect(startPosMouse,endPosMouse));
+
+		    QRect rectNormalised=shape->normalized();
+		    shape->setTopLeft(rectNormalised.topLeft());
+		    shape->setBottomRight(rectNormalised.bottomRight());
+
 		    shapes.push_back(shape);
 		}
 		drawing=false;
@@ -350,6 +377,11 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event){
 		endPosMouse=event->pos();
 		if(endPosMouse!=startPosMouse){
 		    Shape * shape=createShape(currentShapeType,QRect(startPosMouse,endPosMouse));
+
+		    QRect rectNormalised=shape->normalized();
+		    shape->setTopLeft(rectNormalised.topLeft());
+		    shape->setBottomRight(rectNormalised.bottomRight());
+
 		    shapes.push_back(shape);
 		}
 		drawing=false;
@@ -388,6 +420,34 @@ void Canvas::setCurrentOperation(Operations operation){
     currentOperation=operation;
 }
 
+int Canvas::getShapesCount(){
+    return shapes.size();
+}
+
+SceneShape Canvas::getShapeForScene(int index){
+    SceneShape sceneShape;
+    Shape *shape=getShape(index);
+
+    sceneShape.x=shape->x();
+    sceneShape.y=shape->y();
+    sceneShape.width=shape->width();
+    sceneShape.height=shape->height();
+    sceneShape.type=shape->getType();
+
+    return sceneShape;
+}
+
+void Canvas::clearShapes(){
+    while (!shapes.empty()){
+	    delete shapes.back();
+	    shapes.pop_back();
+    }
+}
+
+void Canvas::addShapeFromScene(SceneShape sceneShape){
+    Shape *shape=createShape(sceneShape.type,QRect(sceneShape.x,sceneShape.y,sceneShape.width,sceneShape.height));
+    shapes.push_back(shape);
+}
 
 /*
 =================================================================
@@ -405,7 +465,21 @@ CanvasWidget::CanvasWidget(QWidget *parent){
     canvasWidth=640;
     canvasHeigth=480;
 
+    currentClip=0;
+    currentFrame=0;
+
+    oldCurrentClip=0;
+    oldCurrentFrame=0;
+
     createView();
+}
+
+void CanvasWidget::setSceneController(SceneController *newController){
+    controller=newController;
+}
+
+void CanvasWidget::setSceneView(SceneView *newView){
+    view=newView;
 }
 
 void CanvasWidget::createView(){
@@ -452,6 +526,46 @@ void CanvasWidget::createView(){
 
 }
 
+void CanvasWidget::saveStateChange(){
+    bool isChange=false;
+    isChange=(oldCurrentClip!=currentClip);
+    isChange=isChange || (oldCurrentFrame!=currentFrame);
+
+    //isChange=isChange && isShapesChange();
+
+    if (isChange){
+	qDebug()<<"State Change=true, Save changes in SceneModel...";
+	int chapesCount=canvas->getShapesCount();
+	controller->setShapesCountForFrame(oldCurrentClip,oldCurrentFrame,chapesCount);
+	for (int index=0;index<chapesCount;index++){
+
+	    SceneShape sceneShape=canvas->getShapeForScene(index);
+
+	    controller->setShapeForFrame(oldCurrentClip,oldCurrentFrame,index,sceneShape);
+	}
+
+	canvas->clearShapes();
+    }
+    this->canvas->update();
+}
+
+void CanvasWidget::loadState(){
+    bool isChange=false;
+    isChange=(oldCurrentClip!=currentClip);
+    isChange=isChange || (oldCurrentFrame!=currentFrame);
+
+    //isChange=isChange && isShapesChange();
+
+    if (isChange){
+	int chapesCount=view->getShapesCountForFrame(currentClip,currentFrame);
+	for (int index=0;index<chapesCount;index++){
+	    SceneShape sceneShape=view->getShapeForFrame(currentClip,currentFrame,index);
+	    canvas->addShapeFromScene(sceneShape);
+	}
+    }
+    this->canvas->update();
+}
+
 void CanvasWidget::setOperationSelect(){
     emit changeCurrentOperation(SELECT);
 }
@@ -462,4 +576,83 @@ void CanvasWidget::setOperationDrawRectangle(){
 
 void CanvasWidget::setOperationDrawEllipse(){
     emit changeCurrentOperation(DRAW_ELLIPSE);
+}
+
+void CanvasWidget::changeCurrentClip(int newCurrentClip){
+
+    oldCurrentClip=currentClip;
+    currentClip=newCurrentClip;
+
+   /* if(oldCurrentClip!=currentClip){
+	oldCurrentFrame=0;
+	currentFrame=0;
+    }*/
+}
+
+int CanvasWidget::getValidFameIndex(int frameIndex){
+    int validFrameIndex=-1;
+
+    SceneModel *model=view->getSceneModel();
+
+    StateModelCommand cmd;
+    cmd.CMD=GET_MAX_TIME;
+    ModelState state=model->getStateModel(cmd);
+    TIME_TYPE maxTime=state.timeData;
+
+    cmd.CMD=GET_CLIP_FRAME_COUNT;
+    cmd.intData=currentClip;
+    state=model->getStateModel(cmd);
+    int frameCount=state.intData;
+
+    for(int index=0;index<frameCount;index++){
+	cmd.CMD=GET_CLIP_FRAME_TIME;
+	cmd.pointData.x=currentClip;
+	cmd.pointData.y=index;
+
+	state=model->getStateModel(cmd);
+	TIME_TYPE this_time=state.timeData;
+
+	if ( (index+1)!=frameCount ){
+
+	    cmd.CMD=GET_CLIP_FRAME_TIME;
+	    cmd.pointData.x=currentClip;
+	    cmd.pointData.y=index+1;
+
+	    state=model->getStateModel(cmd);
+	    TIME_TYPE next_time=state.timeData;
+
+	    if ( (frameIndex>=this_time-1) && (frameIndex<next_time-1) ){
+		validFrameIndex=index;
+	    }
+	}else{
+	    if ( frameIndex==this_time-1 ){
+		validFrameIndex=index;
+	    }
+	}
+    }
+
+    return validFrameIndex;
+}
+
+void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
+    newCurrentFrame=getValidFameIndex(newCurrentFrame);
+    if (newCurrentFrame!=-1){
+	oldCurrentFrame=currentFrame;
+	currentFrame=newCurrentFrame;
+
+	saveStateChange();
+	loadState();
+
+	canvas->setSelectShapeIndex(-1);
+	canvas->show();
+    }else{
+	oldCurrentFrame=currentFrame;
+	currentFrame=0;
+
+	saveStateChange();
+	loadState();
+
+	canvas->setSelectShapeIndex(-1);
+	canvas->hide();
+    }
 }

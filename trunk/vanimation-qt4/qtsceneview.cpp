@@ -7,9 +7,40 @@ QtSceneView::QtSceneView(){
 
 }
 
-QtSceneView::QtSceneView(TimelineWidget *tl)
+QtSceneView::QtSceneView(TimelineWidget *tl, CanvasWidget *cw)
 {
     this->timelineWidget=tl;
+    this->canvasWidget=cw;
+
+    //this->timelineWidget->setSceneController(this->getSceneController());
+
+    //this->canvasWidget->setSceneController(this->getSceneController());
+    //this->canvasWidget->setSceneView(this);
+
+    QObject::connect(timelineWidget,SIGNAL(currentClipChanged(int)),canvasWidget,SLOT(changeCurrentClip(int)));
+    QObject::connect(timelineWidget,SIGNAL(currentFrameChanged(int)),canvasWidget,SLOT(changeCurrentFrame(int)));
+}
+
+void QtSceneView::setTimeLineWidget(TimelineWidget *tl){
+    this->timelineWidget=tl;
+}
+
+void QtSceneView::setCanvasWidget(CanvasWidget *cw){
+    this->canvasWidget=cw;
+}
+
+void QtSceneView::connectTimeLineAndCanvasWidget(){
+    QObject::connect(timelineWidget,SIGNAL(currentClipChanged(int)),canvasWidget,SLOT(changeCurrentClip(int)));
+    QObject::connect(timelineWidget,SIGNAL(currentFrameChanged(int)),canvasWidget,SLOT(changeCurrentFrame(int)));
+}
+
+void QtSceneView::configureTimeLineAndCanvasWidget(){
+    //this->timelineWidget->setSceneController(this->getSceneController());
+
+    this->canvasWidget->setSceneController(this->getSceneController());
+    this->canvasWidget->setSceneView(this);
+
+    connectTimeLineAndCanvasWidget();
 }
 
 void QtSceneView::refreshTimeline(){
@@ -74,4 +105,31 @@ void QtSceneView::refreshTimeline(){
 
 void QtSceneView::refreshSceneView(){
     refreshTimeline();
+}
+
+int QtSceneView::getShapesCountForFrame(int clipIndex, int frameIndex){
+    StateModelCommand cmd;
+    cmd.CMD=GET_SHAPES_COUNT_FOR_FRAME;
+    cmd.pointData.x=clipIndex;
+    cmd.pointData.y=frameIndex;
+
+    ModelState state;
+    state=this->getSceneModel()->getStateModel(cmd);
+
+    int shapesCount=state.intData;
+    return shapesCount;
+}
+
+SceneShape QtSceneView::getShapeForFrame(int clipIndex, int frameIndex, int shapeIndex){
+    StateModelCommand cmd;
+    cmd.CMD=GET_SHAPE_FOR_FRAME;
+    cmd.pointData.x=clipIndex;
+    cmd.pointData.y=frameIndex;
+    cmd.intData=shapeIndex;
+
+    ModelState state;
+    state=this->getSceneModel()->getStateModel(cmd);
+
+    SceneShape sceneShape=state.sceneShapeData;
+    return sceneShape;
 }

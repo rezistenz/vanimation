@@ -3,6 +3,8 @@
 
 #include <QtGui>
 #include <list>
+#include "../core/frame.h"
+#include "../core/scenecontroller.h"
 
 using namespace std;
 
@@ -15,10 +17,11 @@ using namespace std;
 */
 
 
-enum ShapeType {
+/*enum ShapeType {
     RECTANGLE,
     ELLIPSE
 };
+*/
 
 
 class Shape: public QRect{
@@ -68,6 +71,11 @@ public:
     ~Canvas();
 
     void setCanvasColor(QColor &color);
+    int getShapesCount();
+    SceneShape getShapeForScene(int index);
+    void clearShapes();
+    void addShapeFromScene(SceneShape sceneShape);
+    void setSelectShapeIndex(int index);
 private:
     QColor *canvasColor;
     list <Shape *> shapes;
@@ -116,6 +124,8 @@ class CanvasWidget : public QWidget
 Q_OBJECT
 public:
     explicit CanvasWidget(QWidget *parent = 0);
+    void setSceneController(SceneController *newController);
+    void setSceneView(SceneView *newView);
 private:
     int canvasWidth;
     int canvasHeigth;
@@ -123,13 +133,30 @@ private:
     Canvas *canvas;
     QFrame *buttonsPanel;
 
+    int currentClip;
+    int currentFrame;
+
+    int oldCurrentClip;
+    int oldCurrentFrame;
+
     void createView();
+
+    int getValidFameIndex(int frameIndex);
+    void saveStateChange();
+    void loadState();
+
+    SceneController *controller;
+    SceneView *view;
+
 signals:
     void changeCurrentOperation(Operations);
 public slots:
     void setOperationSelect();
     void setOperationDrawRectangle();
     void setOperationDrawEllipse();
+
+    void changeCurrentClip(int newCurrentClip);
+    void changeCurrentFrame(int newCurrentFrame);
 };
 
 #endif // CANVASWIDGET_H

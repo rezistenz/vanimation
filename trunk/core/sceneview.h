@@ -8,6 +8,7 @@ using namespace std;
 
 class SceneModel;
 class SceneController;
+class SceneShape;
 
 class SceneView {
 	public:
@@ -22,6 +23,9 @@ class SceneView {
                 void setSceneModel(SceneModel* model);
                 SceneController* getSceneController();
                 void setSceneController(SceneController* controller);
+
+		virtual int getShapesCountForFrame(int clipIndex, int frameIndex)=0;
+		virtual SceneShape getShapeForFrame(int clipIndex, int frameIndex, int shapeIndex)=0;
 	private:
 		SceneModel *model;
 		SceneController *controller;

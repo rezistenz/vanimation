@@ -56,6 +56,31 @@ ModelState SceneModel::getStateModel(StateModelCommand cmd){
 	}
 	break;
 
+    case GET_SHAPES_COUNT_FOR_FRAME:{
+	    modelState.state=SHAPES_COUNT_FOR_FRAME;
+	    int clipIndex=cmd.pointData.x;
+	    int frameIndex=cmd.pointData.y;
+
+	    Clip* clip=this->scene->getClip(clipIndex);
+	    int shapesCount=clip->getShapesCountForFrame(frameIndex);
+
+	    modelState.intData=shapesCount;
+	}
+	break;
+
+    case GET_SHAPE_FOR_FRAME:{
+	    modelState.state=SHAPE_FOR_FRAME;
+	    int clipIndex=cmd.pointData.x;
+	    int frameIndex=cmd.pointData.y;
+	    int shapeIndex=cmd.intData;
+
+	    Clip* clip=this->scene->getClip(clipIndex);
+	    SceneShape sceneShape=clip->getShapeForFrame(frameIndex,shapeIndex);
+
+	    modelState.sceneShapeData=sceneShape;
+	}
+	break;
+
     default:{
             cerr<<"ERROR! StateModelCommand not found."<<endl;
             exit(EXIT_FAILURE);
@@ -97,6 +122,27 @@ void SceneModel::updateModel(UpdateModelCommand cmd){
 	    //cmd.timeData - time for frame
 	    Clip* clip=this->scene->getClip(cmd.intData);
 	    clip->addFrame(cmd.timeData);
+	}
+	break;
+
+    case SET_SHAPES_COUNT_FOR_FRAME:{
+	    int clipIndex=cmd.pointData.x;
+	    int frameIndex=cmd.pointData.y;
+	    int countShapes=cmd.intData;
+
+	    Clip* clip=this->scene->getClip(clipIndex);
+	    clip->setShapesCountForFrame(frameIndex,countShapes);
+	}
+	break;
+
+    case SET_SHAPE_FOR_FRAME:{
+	    int clipIndex=cmd.pointData.x;
+	    int frameIndex=cmd.pointData.y;
+	    int shapeIndex=cmd.intData;
+	    SceneShape sceneShape=cmd.sceneShapeData;
+
+	    Clip* clip=this->scene->getClip(clipIndex);
+	    clip->setShapeForFrame(frameIndex,shapeIndex,sceneShape);
 	}
 	break;
 

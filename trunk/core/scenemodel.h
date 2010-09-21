@@ -12,7 +12,9 @@ enum StateModelCommands{
 	GET_CLIP_COUNT,
 	GET_MAX_TIME,
 	GET_CLIP_FRAME_COUNT,
-	GET_CLIP_FRAME_TIME
+	GET_CLIP_FRAME_TIME,
+	GET_SHAPES_COUNT_FOR_FRAME,
+	GET_SHAPE_FOR_FRAME
 };
 
 struct PointData{
@@ -32,13 +34,16 @@ enum ModelStates{
 	CLIP_COUNT,
 	MAX_TIME,
 	CLIP_FRAME_COUNT,
-	CLIP_FRAME_TIME
+	CLIP_FRAME_TIME,
+	SHAPES_COUNT_FOR_FRAME,
+	SHAPE_FOR_FRAME
 };
 
 struct ModelState{
 	ModelStates state;
 	int intData;
 	TIME_TYPE timeData;
+	SceneShape sceneShapeData;
 };
 
 //UPDATE MODEL COMMAND
@@ -48,13 +53,17 @@ enum UpdateModelCommands{
 	PLAY_CLIP,
         PLAY_ALL_CLIPS,
 	SET_MAX_TIME,
-	ADD_FRAME_TO_CLIP
+	ADD_FRAME_TO_CLIP,
+	SET_SHAPES_COUNT_FOR_FRAME,
+	SET_SHAPE_FOR_FRAME
 };
 
 struct UpdateModelCommand{
 	UpdateModelCommands CMD;
 	int intData;
 	TIME_TYPE timeData;
+	PointData pointData;
+	SceneShape sceneShapeData;
 };
 
 class SceneView;
