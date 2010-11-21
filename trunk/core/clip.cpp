@@ -117,70 +117,63 @@ int Clip::moveFrameBack(int index){
 	return index;
 }
 
-int Clip::moveFrameToTime(int index,TIME_TYPE time){
+void Clip::moveFrameToTime(int index,TIME_TYPE time){
 	assert(time>=0 && time<=Scene::getMaxTime());
 	
 	bool found = false;
 	vector<Frame*>::iterator iter,foundIter;
 	TIME_TYPE frameTime;
-	//цикл по всем фреймам
+
 	for(iter=frames.begin();iter!=frames.end();iter++){
-		//получить время i-го фрейма сохранить в переменной frameTime
+
 		frameTime=(*iter)->getTime();
-		//если time <= frameTime то
+
 		if (time<=frameTime){
-			//запомнить i фрейма
+
 			foundIter=iter;
 			found = true;
-			//прервать цикл
+
 			break;
-		}//конец если
-	}//конец цикла
+		}
+	}
 	
 	Frame* pThisFrame=NULL;
-	//если found то 
+
 	if (found){
-		//перместить фрейм index в позицию i
-		//запомнить ссылку на фрейм в позиции index  в переменной pThisFame
 		iter=frames.begin()+index;
 		pThisFrame=*iter;
-		//задать время для перемещаемого фрейма как time
+
 		pThisFrame->setTime(time);
-		//удалить фрейим из позиции index
+
 		frames.erase(iter);
-		//cout<<(foundIter-iter)<<endl;
+
 		if ((foundIter-iter)>0){
 			--foundIter;
 		}
-		//вставить pThisFrame в позицию i
+
 		frames.insert(foundIter,pThisFrame);
-		//если time==frameTime то
+
 		if (time==frameTime){
 			cout<<"yes "<< (*foundIter) <<endl;
-			//пересчитать время для всех фреймов начиная с i+1
-			//цикл по фреймам начиная с позиции it=i
 			for (iter=foundIter+1;iter!=frames.end();iter++){
 				TIME_TYPE prevTime=(*(iter-1))->getTime();
 				TIME_TYPE thisTime=(*iter)->getTime();
-				//если prevTime==thisTime то
+
 				if (prevTime==thisTime) {
-					//установить время фрейма it в thisTime+1
 					(*iter)->setTime(thisTime+1);
-				}//конец если
-			}//конец цикла
-		}//конец если
-	}else{//иначе
-		//переместить фрейм index в конец
-		//запомнить ссылку на фрейм в позиции index  в переменной pThisFame
+				}
+			}
+		}
+	}else{
 		iter=frames.begin()+index;
 		pThisFrame=*iter;
-		//задать время для перемещаемого фрейма как time
+
 		pThisFrame->setTime(time);
-		//удалить фрейим из позиции index
+
 		frames.erase(iter);
-		//вставить pThisFrame в конец 
+
 		frames.push_back(pThisFrame);
-	}//конец если
+	}
 
 }
 
@@ -189,19 +182,16 @@ void Clip::play(TIME_TYPE time){
 	
 	vector<Frame*>::iterator iter,foundIter=frames.end()-1;
 	TIME_TYPE frameTime;
-	//цикл по всем фреймам
+
 	for(iter=frames.begin();iter!=frames.end();iter++){
-		//получить время i-го фрейма сохранить в переменной frameTime
 		frameTime=(*iter)->getTime();
-		//если time <= frameTime то
+
 		if (time<=frameTime){
-			//запомнить i фрейма
 			foundIter=iter;
-			//прервать цикл
 			break;
-		}//конец если
-	}//конец цикла
-	//draw frame
+		}
+	}
+
 	(*foundIter)->draw();
 }
 
