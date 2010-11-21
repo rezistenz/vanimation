@@ -3,6 +3,7 @@
 
 #include <QtGui>
 #include <list>
+#include <iostream>
 #include "../core/frame.h"
 #include "../core/scenecontroller.h"
 
@@ -104,6 +105,7 @@ private:
 
     void drawCanvas(QPainter &painter);
     void drawShapes(QPainter &painter);
+    void drawSelectedShape(QPainter &painter);
     void drawChangeAnchors(QPainter &painter);
 public slots:
     void setCurrentOperation(Operations);

@@ -21,7 +21,8 @@ ClipWidget::ClipWidget(QWidget *parent=0){
     setFixedSize(frameWidth*countFrames+1,frameHeight+1);
 }
 
-void ClipWidget::paintEvent(QPaintEvent *event){
+void ClipWidget::paintEvent(QPaintEvent */*event*/){
+
     QPainter painter;
     painter.begin(this);
 
@@ -126,7 +127,7 @@ ClipsPanelWidget::ClipsPanelWidget(QWidget *parent){
     currentClip=0;
 }
 
-void ClipsPanelWidget::paintEvent( QPaintEvent * event ){
+void ClipsPanelWidget::paintEvent( QPaintEvent * /*event*/ ){
     QPainter painter;
     painter.begin(this);
 
@@ -138,6 +139,7 @@ void ClipsPanelWidget::paintEvent( QPaintEvent * event ){
     painter.drawLine(xPosFrame,0,xPosFrame,this->height());
 
     int yPosClip=currentClip*frameHeight + frameHeight/2 +this->layout()->margin()+currentClip*this->layout()->spacing();
+
     painter.drawLine(0,yPosClip,this->width(),yPosClip);
 
     painter.end();

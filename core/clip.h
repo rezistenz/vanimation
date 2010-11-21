@@ -27,7 +27,7 @@ class Clip {
 
 		int moveFrameForward(int index); //return new index;
 		int moveFrameBack(int index); //return new index;
-		int moveFrameToTime(int index,TIME_TYPE time);
+		void moveFrameToTime(int index,TIME_TYPE time);
 
 		void play(TIME_TYPE time);
 		void stop();

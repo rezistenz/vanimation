@@ -5,6 +5,7 @@
 #include "timelinewidget.h"
 #include "../core/sceneview.h"
 #include "qtsceneview.h"
+#include "qtscenecontroller.h"
 #include "canvaswidget.h"
 
 namespace Ui {
@@ -29,7 +30,7 @@ private:
 
     SceneModel *model;
     QtSceneView *view;
-    SceneController *controller;
+    QtSceneController *controller;
 };
 
 #endif // MAINWINDOW_H

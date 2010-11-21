@@ -69,13 +69,32 @@ Canvas::~Canvas(){
     }
 }
 Shape * Canvas::getShape(int index){
+    int countShapes=shapes.size();
+
+    assert(countShapes!=0);
+    assert( (index >= 0) && (index <= (countShapes-1)) );
+
+    if ( countShapes == 0 ){
+	std::cerr << "ERROR: in function Canvas::getShape(int index) shapes is empty!" << std::endl;
+	exit(EXIT_FAILURE);
+    }
+
+    if (!((index >= 0) && (index <= (countShapes-1)))){
+	std::cerr << "ERROR: in function Canvas::getShape(int index) index out of bounds!" << std::endl;
+	exit(EXIT_FAILURE);
+    }
+
+    Shape *shape=NULL;
     int curIndex=0;
-    for( list< Shape * >::iterator shape=shapes.begin(); shape!=shapes.end(); shape++ ){
+    for( list< Shape * >::iterator shapeIter=shapes.begin(); shapeIter!=shapes.end(); shapeIter++ ){
 	if (curIndex==index){
-	    return (*shape);
+	    shape=(*shapeIter);
+	    break;
 	}
 	curIndex++;
     }
+
+    return shape;
 }
 
 void Canvas::setCanvasColor(QColor &color){
@@ -166,15 +185,26 @@ void Canvas::drawShapes(QPainter &painter){
     int index=0;
     for( list< Shape * >::iterator shape=shapes.begin(); shape!=shapes.end(); shape++ ){
 	painter.setBrush(QBrush(Qt::white));
-	if (selectShapeIndex==index){
-	    painter.setBrush(QBrush(Qt::red));
+	if (index==this->selectShapeIndex){
+	    drawSelectedShape(painter);
+	}else{
+	    (*shape)->draw(painter);
 	}
-
-	(*shape)->draw(painter);
 	index++;
     }
 
     drawChangeAnchors(painter);
+}
+
+void Canvas::drawSelectedShape(QPainter &painter){
+    if (selectShapeIndex!=-1){
+	Shape * shape=getShape(selectShapeIndex);
+
+	painter.setBrush(QBrush(Qt::red));
+	shape->draw(painter);
+	painter.setBrush(QBrush(Qt::gray,Qt::Dense6Pattern));
+	shape->draw(painter);
+    }
 }
 
 void Canvas::drawChangeAnchors(QPainter &painter){
@@ -182,21 +212,18 @@ void Canvas::drawChangeAnchors(QPainter &painter){
     if (selectShapeIndex!=-1){
 	Shape * shape=getShape(selectShapeIndex);
 
+	//draw selection rectangle for shape
+	painter.setPen(QPen(QBrush(Qt::black),1,Qt::DashLine));
+	painter.setBrush(QBrush(Qt::NoBrush));
+	painter.drawRect(QRect(shape->left(),shape->top(),shape->width(),shape->height()));
+
+	//draw bottomRight point anchor
 	painter.setPen(QPen(Qt::black));
 	painter.setBrush(QBrush(Qt::green));
+	QPoint bottomRight=shape->bottomRight();
+	painter.drawRect(bottomRight.x(),bottomRight.y(),6,6);
 
-	switch (shape->getType()){
-	case RECTANGLE:{
-		QPoint bottomRight=shape->bottomRight();
-		painter.drawRect(bottomRight.x(),bottomRight.y(),6,6);
-	    }
-	    break;
-	case ELLIPSE:{
-		QPoint bottomRight=shape->bottomRight();
-		painter.drawRect(bottomRight.x(),bottomRight.y(),6,6);
-	    }
-	    break;
-	}
+
     }
 }
 
@@ -223,9 +250,10 @@ bool Canvas::clickChangeAnchors(QPoint pos){
     return click;
 }
 
-void Canvas::paintEvent(QPaintEvent *event){
+void Canvas::paintEvent(QPaintEvent */*event*/){
     QPainter painter;
     painter.begin(this);
+    //painter.setRenderHint(QPainter::Antialiasing,true);
 
     drawCanvas(painter);
 
@@ -595,9 +623,7 @@ int CanvasWidget::getValidFameIndex(int frameIndex){
     SceneModel *model=view->getSceneModel();
 
     StateModelCommand cmd;
-    cmd.CMD=GET_MAX_TIME;
-    ModelState state=model->getStateModel(cmd);
-    TIME_TYPE maxTime=state.timeData;
+    ModelState state;
 
     cmd.CMD=GET_CLIP_FRAME_COUNT;
     cmd.intData=currentClip;
