@@ -70,12 +70,18 @@ MainWindow::MainWindow(QWidget *parent) :
     controller->addClip();
     controller->addFrameToClip(1,1);
     controller->addFrameToClip(1,4);
-
     controller->addClip();
     controller->addFrameToClip(2,2);
     controller->addFrameToClip(2,5);
     controller->addFrameToClip(2,10);
 
+    tl->changeCurrentClip(0);
+    tl->changeCurrentFrame(0);
+
+    tl->changeCurrentClip(0);
+    tl->changeCurrentFrame(0);
+
+/**/
 
 }
 

@@ -220,9 +220,11 @@ void Clip::setShapeForFrame(int frameIndex, int shapeIndex, SceneShape sceneShap
 }
 
 int Clip::getShapesCountForFrame(int frameIndex){
-    Frame *frame=this->frames.at(frameIndex);
-    int shapesCount=frame->getShapesCount();
-
+    int shapesCount=0;
+    if(this->getFramesCount()>0){
+	Frame *frame=this->frames.at(frameIndex);
+	shapesCount=frame->getShapesCount();
+    }
     return shapesCount;
 }
 

@@ -159,6 +159,7 @@ public slots:
 
     void changeCurrentClip(int newCurrentClip);
     void changeCurrentFrame(int newCurrentFrame);
+    void setDeletingOldCurrentFrame();
 };
 
 #endif // CANVASWIDGET_H

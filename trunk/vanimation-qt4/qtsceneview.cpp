@@ -17,6 +17,8 @@ QtSceneView::QtSceneView(TimelineWidget *tl, CanvasWidget *cw)
     //this->canvasWidget->setSceneController(this->getSceneController());
     //this->canvasWidget->setSceneView(this);
 
+    this->timelineWidget->setController(this->getSceneController());
+
     QObject::connect(timelineWidget,SIGNAL(currentClipChanged(int)),canvasWidget,SLOT(changeCurrentClip(int)));
     QObject::connect(timelineWidget,SIGNAL(currentFrameChanged(int)),canvasWidget,SLOT(changeCurrentFrame(int)));
 }
@@ -32,10 +34,13 @@ void QtSceneView::setCanvasWidget(CanvasWidget *cw){
 void QtSceneView::connectTimeLineAndCanvasWidget(){
     QObject::connect(timelineWidget,SIGNAL(currentClipChanged(int)),canvasWidget,SLOT(changeCurrentClip(int)));
     QObject::connect(timelineWidget,SIGNAL(currentFrameChanged(int)),canvasWidget,SLOT(changeCurrentFrame(int)));
+    QObject::connect(timelineWidget,SIGNAL(setDeletingOldCurrentFrame()),canvasWidget,SLOT(setDeletingOldCurrentFrame()));
 }
 
 void QtSceneView::configureTimeLineAndCanvasWidget(){
     //this->timelineWidget->setSceneController(this->getSceneController());
+    this->timelineWidget->setController(this->getSceneController());
+    this->timelineWidget->setModel(this->getSceneModel());
 
     this->canvasWidget->setSceneController(this->getSceneController());
     this->canvasWidget->setSceneView(this);

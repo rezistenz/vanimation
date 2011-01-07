@@ -62,7 +62,11 @@ ModelState SceneModel::getStateModel(StateModelCommand cmd){
 	    int frameIndex=cmd.pointData.y;
 
 	    Clip* clip=this->scene->getClip(clipIndex);
-	    int shapesCount=clip->getShapesCountForFrame(frameIndex);
+	    int shapesCount=0;
+
+	    if(clip->getFramesCount()>0){
+		shapesCount=clip->getShapesCountForFrame(frameIndex);
+	    }
 
 	    modelState.intData=shapesCount;
 	}
@@ -92,6 +96,7 @@ ModelState SceneModel::getStateModel(StateModelCommand cmd){
 
 void SceneModel::updateModel(UpdateModelCommand cmd){
     switch(cmd.CMD){
+
     case ADD_CLIP:{
             this->scene->addClip();
         }
@@ -102,20 +107,7 @@ void SceneModel::updateModel(UpdateModelCommand cmd){
         }
         break;
 
-    case PLAY_CLIP:{
-            //this->scene->playClip(cmd.intData);
-        }
-        break;
-
-    case PLAY_ALL_CLIPS:{
-            //this->scene->playAllClip();
-        }
-        break;
-
-    case SET_MAX_TIME:{
-            this->scene->setMaxTime(cmd.intData);
-        }
-        break;
+//////////////////////////////////////////////////////////
 
     case ADD_FRAME_TO_CLIP:{
 	    //cmd.intData - index of clip
@@ -124,6 +116,34 @@ void SceneModel::updateModel(UpdateModelCommand cmd){
 	    clip->addFrame(cmd.timeData);
 	}
 	break;
+
+    case DEL_FRAME_FROM_CLIP:{
+	    //cmd.pointData.x - Index of clip
+	    //cmd.pointData.y - index of frame in clip
+
+	    Clip* clip=this->scene->getClip(cmd.pointData.x);
+	    clip->delFrame(cmd.pointData.y);
+	}
+	break;
+
+////////////////////////////////////////////////////////////
+
+    case PLAY_CLIP:{
+	    //this->scene->playClip(cmd.intData);
+	}
+	break;
+
+    case PLAY_ALL_CLIPS:{
+	    //this->scene->playAllClip();
+	}
+	break;
+
+    case SET_MAX_TIME:{
+	    this->scene->setMaxTime(cmd.intData);
+	}
+	break;
+
+///////////////////////////////////////////////////////////////
 
     case SET_SHAPES_COUNT_FOR_FRAME:{
 	    int clipIndex=cmd.pointData.x;

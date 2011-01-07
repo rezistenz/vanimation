@@ -493,11 +493,11 @@ CanvasWidget::CanvasWidget(QWidget *parent){
     canvasWidth=640;
     canvasHeigth=480;
 
-    currentClip=0;
-    currentFrame=0;
+    currentClip=-1;
+    currentFrame=-1;
 
-    oldCurrentClip=0;
-    oldCurrentFrame=0;
+    oldCurrentClip=-1;
+    oldCurrentFrame=-1;
 
     createView();
 }
@@ -575,6 +575,8 @@ void CanvasWidget::saveStateChange(){
 	canvas->clearShapes();
     }
     this->canvas->update();
+
+
 }
 
 void CanvasWidget::loadState(){
@@ -592,6 +594,8 @@ void CanvasWidget::loadState(){
 	}
     }
     this->canvas->update();
+
+
 }
 
 void CanvasWidget::setOperationSelect(){
@@ -661,7 +665,32 @@ int CanvasWidget::getValidFameIndex(int frameIndex){
 }
 
 void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
-    newCurrentFrame=getValidFameIndex(newCurrentFrame);
+
+    int currentFrameIndex=-1;
+
+    if (oldCurrentClip != -1){
+	currentFrameIndex=getValidFameIndex(newCurrentFrame);
+    }
+
+	oldCurrentFrame=currentFrame;
+	currentFrame=currentFrameIndex;
+
+    if (oldCurrentClip != -1){
+	if (oldCurrentFrame != -1){
+	    saveStateChange();
+
+	    canvas->setSelectShapeIndex(-1);
+	    canvas->hide();
+	}
+
+	if(currentFrame != -1){
+	    loadState();
+
+	    canvas->setSelectShapeIndex(-1);
+	    canvas->show();
+	}
+    }
+    /*
     if (newCurrentFrame!=-1){
 	oldCurrentFrame=currentFrame;
 	currentFrame=newCurrentFrame;
@@ -680,5 +709,14 @@ void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
 
 	canvas->setSelectShapeIndex(-1);
 	canvas->hide();
-    }
+    }*/
+
+}
+
+void CanvasWidget::setDeletingOldCurrentFrame(){
+    this->currentFrame=-1;
+    canvas->clearShapes();
+    canvas->update();
+    canvas->setSelectShapeIndex(-1);
+    canvas->hide();
 }

@@ -84,12 +84,13 @@ void ClipWidget::setMaxTime(TIME_TYPE time){
 }
 
 void ClipWidget::mouseReleaseEvent(QMouseEvent *event){
-    if (event->button()==Qt::LeftButton){
+    //if (event->button()==Qt::LeftButton){
 	int curFrame=event->x()/frameWidth;
 
 	emit currentClipChanged(index);
 	emit currentFrameChanged(curFrame);
-    }
+    //}
+	event->ignore();
 }
 
 void ClipWidget::setIndex(int newIndex){
@@ -98,6 +99,29 @@ void ClipWidget::setIndex(int newIndex){
 
 int ClipWidget::getIndex(){
     return index;
+}
+
+bool ClipWidget::inFrame(const QPoint& point){
+    QPoint pos=this->mapFromGlobal(point);
+    int curFrame=pos.x()/frameWidth+1;
+    qDebug()<<curFrame;
+
+    for(int i=0; i<countFrames; i++){
+	vector< TIME_TYPE >::iterator iter;
+	iter=frameTimes.begin()+i;
+
+	TIME_TYPE frameTime=*iter;
+	TIME_TYPE nextFrameTime=frameTime;
+	if (i < countFrames-1){
+	    nextFrameTime=*(iter+1);
+	}
+
+	if( (frameTime<=curFrame) && (curFrame<=nextFrameTime) ){
+	    return true;
+	}
+
+    }
+    return false;
 }
 
 void ClipWidget::changeCurrentClip(int newCurrentClip){
@@ -125,8 +149,26 @@ ClipsPanelWidget::ClipsPanelWidget(QWidget *parent){
 
     currentFrame=0;
     currentClip=0;
+
+    //createContextMenu();
 }
 
+void ClipsPanelWidget::createContextMenu(){
+    /*this->contextMenu=new QMenu(this);
+    this->contextMenu->addAction("Add clip");
+    this->contextMenu->addAction("Del clip");
+    this->contextMenu->addSeparator();
+    this->contextMenu->addAction("Add frame");
+    this->contextMenu->addAction("Del frame");*/
+}
+
+/*void ClipsPanelWidget::mouseReleaseEvent(QMouseEvent* event){
+    if (event->button()==Qt::RightButton){
+	contextMenu->exec(event->globalPos());
+    }
+    event->ignore();
+}
+*/
 void ClipsPanelWidget::paintEvent( QPaintEvent * /*event*/ ){
     QPainter painter;
     painter.begin(this);
@@ -168,18 +210,79 @@ TimelineWidget::TimelineWidget(QWidget* parent=0)
     createView();
 }
 
+void TimelineWidget::setController(SceneController* controller){
+    this->controller=controller;
+}
+
+void TimelineWidget::setModel(SceneModel* model){
+    this->model=model;
+}
+
+//this method from class CanvasWidget
+// Nedd refactoring in to qtsceneview
+int TimelineWidget::getValidFameIndex(int frameIndex){
+    int validFrameIndex=-1;
+
+    //SceneModel *model=view->getSceneModel();
+
+    StateModelCommand cmd;
+    ModelState state;
+
+    cmd.CMD=GET_CLIP_FRAME_COUNT;
+    cmd.intData=currentClip;
+    state=model->getStateModel(cmd);
+    int frameCount=state.intData;
+
+    for(int index=0;index<frameCount;index++){
+	cmd.CMD=GET_CLIP_FRAME_TIME;
+	cmd.pointData.x=currentClip;
+	cmd.pointData.y=index;
+
+	state=model->getStateModel(cmd);
+	TIME_TYPE this_time=state.timeData;
+
+	if ( (index+1)!=frameCount ){
+
+	    cmd.CMD=GET_CLIP_FRAME_TIME;
+	    cmd.pointData.x=currentClip;
+	    cmd.pointData.y=index+1;
+
+	    state=model->getStateModel(cmd);
+	    TIME_TYPE next_time=state.timeData;
+
+	    if ( (frameIndex>=this_time-1) && (frameIndex<next_time-1) ){
+		validFrameIndex=index;
+	    }
+	}else{
+	    if ( frameIndex==this_time-1 ){
+		validFrameIndex=index;
+	    }
+	}
+    }
+
+    return validFrameIndex;
+}
+
+
 void TimelineWidget::createView(){
 
-    scrollArea=new QScrollArea();
+    scrollArea=new QScrollArea(this);
 
     QVBoxLayout *vLayout=new QVBoxLayout();
     setLayout(vLayout);
     vLayout->addWidget(scrollArea);
-    //setFixedSize(500,200);
+
+    playPanel= new PlayPanelWidget(this);
+    playPanel->setSceneView(this->model->getSceneView());
+    connect(playPanel,SIGNAL(currentFrameChanged(int)),this,SLOT(changeCurrentFrame(int)));
+    connect(this,SIGNAL(currentFrameChanged(int)),playPanel,SLOT(changeCurrentFrame(int)));
+    vLayout->addWidget(playPanel);
+
+
 
     QVBoxLayout *vScrollLayout=new QVBoxLayout();
 
-    ClipsPanelWidget *clipsPanel=new ClipsPanelWidget(this);
+    clipsPanel=new ClipsPanelWidget(this);
     QObject::connect(this,SIGNAL(currentClipChanged(int)),clipsPanel,SLOT(changeCurrentClip(int)));
     QObject::connect(this,SIGNAL(currentFrameChanged(int)),clipsPanel,SLOT(changeCurrentFrame(int)));
 
@@ -197,7 +300,58 @@ void TimelineWidget::createView(){
 
     //vScrollLayout->insertWidget(vScrollLayout->count()-1,new ClipWidget(this));
 
-    clipsPanel->adjustSize();
+    //clipsPanel->adjustSize();
+
+    createContextMenu();
+}
+
+void TimelineWidget::createContextMenu(){
+    this->contextMenu=new QMenu(this);
+    this->contextMenu->addAction("Add clip");
+    this->contextMenu->addAction("Del clip");
+    this->contextMenu->addSeparator();
+    this->contextMenu->addAction("Add frame");
+    this->contextMenu->addAction("Del frame");
+
+    connect(contextMenu->actions().at(0),SIGNAL(triggered()),this,SLOT(addClipSlot()));
+    connect(contextMenu->actions().at(1),SIGNAL(triggered()),this,SLOT(delClipSlot()));
+
+    connect(contextMenu->actions().at(3),SIGNAL(triggered()),this,SLOT(addFrameSlot()));
+    connect(contextMenu->actions().at(4),SIGNAL(triggered()),this,SLOT(delFrameSlot()));
+}
+
+void  TimelineWidget::mouseReleaseEvent(QMouseEvent* event){
+    if (event->button()==Qt::RightButton){
+	if ( scrollArea->viewport()->rect().contains( event->pos() )  ){
+
+	    contextMenu->actions().at(0)->setEnabled(true);
+	    contextMenu->actions().at(1)->setEnabled(false);
+	    contextMenu->actions().at(3)->setEnabled(false);
+	    contextMenu->actions().at(4)->setEnabled(false);
+
+
+	    for(QVector<ClipWidget*>::iterator iter=clips.begin();iter!=clips.end();iter++){
+		ClipWidget *clip=*iter;
+		QPoint point(event->globalPos());
+		QRect rect(
+			    clip->mapToGlobal(clip->rect().topLeft()),
+			    clip->mapToGlobal(clip->rect().bottomRight())
+			   );
+		if( rect.contains(point) ){
+		    contextMenu->actions().at(1)->setEnabled(true);
+		    contextMenu->actions().at(3)->setEnabled(true);
+
+		    if(clip->inFrame(point)){
+			contextMenu->actions().at(4)->setEnabled(true);
+		    }
+
+		    break;
+		}
+	    }
+
+	    this->contextMenu->exec(event->globalPos());
+	}
+    }
 }
 
 int TimelineWidget::getCountClip(){
@@ -215,6 +369,9 @@ void TimelineWidget::addClip(){
 
     QObject::connect(this,SIGNAL(currentClipChanged(int)),newClip,SLOT(changeCurrentClip(int)));
     QObject::connect(this,SIGNAL(currentFrameChanged(int)),newClip,SLOT(changeCurrentFrame(int)));
+
+    newClip->changeCurrentClip(this->currentClip);
+    newClip->changeCurrentFrame(this->currentFrame);
 }
 
 void TimelineWidget::delClip(){
@@ -224,7 +381,9 @@ void TimelineWidget::delClip(){
 }
 
 void TimelineWidget::adjustSizeClips(){
-    this->scrollArea->widget()->adjustSize();
+    QApplication::processEvents();
+    this->clipsPanel->adjustSize();
+    this->clipsPanel->update();
 }
 
 void TimelineWidget::setClipCountFrames(int indexClip,int countFrames){
@@ -256,7 +415,7 @@ void TimelineWidget::changeCurrentClip(int newCurrentClip){
 
     emit currentClipChanged(currentClip);
     qDebug()<<"currentClip "<<currentClip;
-    this->scrollArea->widget()->update();
+    this->clipsPanel->update();
 }
 
 void TimelineWidget::changeCurrentFrame(int newCurrentFrame){
@@ -264,5 +423,107 @@ void TimelineWidget::changeCurrentFrame(int newCurrentFrame){
 
     emit currentFrameChanged(currentFrame);
     qDebug()<<"currentFrame "<<currentFrame;
-    this->scrollArea->widget()->update();
+    this->clipsPanel->update();
+}
+
+void TimelineWidget::addClipSlot(){
+    this->controller->addClip();
+}
+
+void TimelineWidget::addFrameSlot(){
+    this->controller->addFrameToClip(this->currentClip,this->currentFrame+1);
+    emit currentFrameChanged(currentFrame);
+}
+
+void TimelineWidget::delClipSlot(){
+    this->controller->delClip(this->currentClip);
+}
+
+void TimelineWidget::delFrameSlot(){
+    emit setDeletingOldCurrentFrame();
+    this->controller->delFrameFromClip(this->currentClip,this->getValidFameIndex(this->currentFrame));
+    emit currentFrameChanged(currentFrame);
+}
+
+
+
+
+/*-----------------------------------------------------------
+
+    class PlayPanelWidget
+
+------------------------------------------------------------*/
+
+PlayPanelWidget::PlayPanelWidget(QWidget *parent){
+    this->setParent(parent);
+    currentFrame=1;
+
+    QHBoxLayout *hLayout=new QHBoxLayout();
+    this->setLayout(hLayout);
+
+    this->btnPlay=new QPushButton(QString("Play"),this);
+    this->btnPause=new QPushButton(QString("Pause"),this);
+    this->btnStop=new QPushButton(QString("Stop"),this);
+
+    QButtonGroup *btnGroup= new QButtonGroup(this);
+    btnGroup->addButton(this->btnPlay);
+    btnGroup->addButton(this->btnPause);
+    btnGroup->addButton(this->btnStop);
+
+    hLayout->addWidget(this->btnPlay);
+    hLayout->addWidget(this->btnPause);
+    hLayout->addWidget(this->btnStop);
+    lbl = new QLabel( QString().setNum(this->currentFrame),this);
+    hLayout->addWidget(lbl);
+    hLayout->addStretch();
+
+    connect(btnPlay,SIGNAL(clicked()),this,SLOT(play()));
+    connect(btnPause,SIGNAL(clicked()),this,SLOT(pause()));
+    connect(btnStop,SIGNAL(clicked()),this,SLOT(stop()));
+
+    timer= new QTimer(this);
+    connect(timer,SIGNAL(timeout()),this,SLOT(timerSlot()));
+    timer->setInterval(100);
+}
+
+void PlayPanelWidget::timerSlot(){
+    TIME_TYPE maxTime=view->getSceneModel()->getScene()->getMaxTime();
+
+    if(this->currentFrame<maxTime){
+	this->currentFrame++;
+    }else{
+	this->currentFrame=1;
+    }
+    emit currentFrameChanged(currentFrame);
+    lbl->setText(QString().setNum(this->currentFrame));
+    QApplication::processEvents();
+}
+
+void PlayPanelWidget::play(){
+    state=PLAY;
+    timer->start();
+    //qDebug()<<timer->timerId();
+}
+
+void PlayPanelWidget::pause(){
+    if (state==PLAY){
+	state=PAUSE;
+    }
+    timer->stop();
+    //qDebug()<<timer->timerId();
+}
+
+void PlayPanelWidget::stop(){
+    state=STOP;
+    timer->stop();
+    //qDebug()<<timer->timerId();
+}
+
+void PlayPanelWidget::changeCurrentFrame(int newCurrentFrame){
+    this->currentFrame=newCurrentFrame;
+    lbl->setText(QString().setNum(this->currentFrame));
+}
+
+void PlayPanelWidget::setSceneView(SceneView *newView){
+    this->view=newView;
 }
