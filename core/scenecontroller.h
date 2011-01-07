@@ -16,7 +16,12 @@ public:
 	void setSceneModel(SceneModel* model);
 
 	virtual void addClip()=0;
+	virtual void delClip(int clipIndex)=0;
+
 	virtual void addFrameToClip(int clipIndex, TIME_TYPE time)=0;
+	virtual void delFrameFromClip(int clipIndex, int frameIndex)=0;
+
+
 	virtual void setShapesCountForFrame(int clipIndex, int frameIndex, int newShapesCount)=0;
 	virtual void setShapeForFrame(int clipIndex, int frameIndex, int shapeIndex, SceneShape sceneShape)=0;
 protected:

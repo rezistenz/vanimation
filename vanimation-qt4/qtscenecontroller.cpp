@@ -13,11 +13,28 @@ void QtSceneController::addClip(){
     updateModel(cmd);
 }
 
+void QtSceneController::delClip(int clipIndex){
+    UpdateModelCommand cmd;
+    cmd.CMD=DEL_CLIP;
+    cmd.intData=clipIndex;
+
+    updateModel(cmd);
+}
+
 void QtSceneController::addFrameToClip(int clipIndex, TIME_TYPE time){
     UpdateModelCommand cmd;
     cmd.CMD=ADD_FRAME_TO_CLIP;
     cmd.intData=clipIndex;
     cmd.timeData=time;
+
+    updateModel(cmd);
+}
+
+void QtSceneController::delFrameFromClip(int clipIndex, int frameIndex){
+    UpdateModelCommand cmd;
+    cmd.CMD=DEL_FRAME_FROM_CLIP;
+    cmd.pointData.x=clipIndex;
+    cmd.pointData.y=frameIndex;
 
     updateModel(cmd);
 }
