@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //view->refreshSceneView();
 
-    controller->addClip();
+    /*controller->addClip();
     controller->addFrameToClip(0,1);
     controller->addFrameToClip(0,10);
     controller->addFrameToClip(0,20);
@@ -78,8 +78,13 @@ MainWindow::MainWindow(QWidget *parent) :
     tl->changeCurrentClip(0);
     tl->changeCurrentFrame(0);
 
-    tl->changeCurrentClip(0);
-    tl->changeCurrentFrame(0);
+    //tl->changeCurrentClip(0);
+    //tl->changeCurrentFrame(0);
+
+    scene->saveToFile("file.txt");*/
+    scene->loadFromFile("file1.txt");
+
+    view->refreshSceneView();
 
 /**/
 
@@ -87,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    scene->saveToFile("file1.txt");
     delete scene;
     delete model;
     delete view;

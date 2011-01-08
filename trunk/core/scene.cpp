@@ -21,6 +21,13 @@ Scene::~Scene(){
 	}
 }
 
+void Scene::clear(){
+    while (!clips.empty()){
+	    delete clips.back();
+	    clips.pop_back();
+    }
+}
+
 void Scene::addClip(){
 	Clip* pclip=new Clip();
 	clips.push_back(pclip);
@@ -51,4 +58,102 @@ TIME_TYPE Scene::getMaxTime(){
 
 void Scene::setMaxTime(TIME_TYPE mTime){
     Scene::maxTime=mTime;
+}
+
+void Scene::saveToFile(string fileName){
+    ofstream file;
+    file.open(fileName.c_str());
+
+    file<<this->getMaxTime()<<endl;
+    int clipsCount=0;
+    clipsCount=this->getClipCount();
+    file<<clipsCount<<endl;
+
+    for(int i=0; i<clipsCount; i++){
+	Clip* clip=this->getClip(i);
+	int framesCount=clip->getFramesCount();
+	file<<framesCount<<endl;
+
+	for(int j=0; j<framesCount; j++){
+	    int frameTime=clip->getFrameTime(j);
+	    file<<frameTime<<endl;
+
+	    int shapesCount=clip->getShapesCountForFrame(j);
+	    file<<shapesCount<<endl;
+	    for(int k=0; k<shapesCount; k++){
+		SceneShape shape=clip->getShapeForFrame(j,k);
+
+		ShapeType type=shape.type;
+		int x=shape.x;
+		int y=shape.y;
+		int width=shape.width;
+		int height=shape.height;
+
+		file<<type<<endl;
+		file<<x<<endl;
+		file<<y<<endl;
+		file<<width<<endl;
+		file<<height<<endl;
+	    }
+	}
+    }
+
+    file.close();
+}
+
+void Scene::loadFromFile(string fileName){
+    this->clear();
+
+    ifstream file;
+    file.open(fileName.c_str());
+
+
+    file>>this->maxTime;
+    int clipsCount=0;
+    file>>clipsCount;
+
+    for(int i=0; i<clipsCount; i++){
+	this->addClip();
+	Clip* clip=this->getClip(i);
+
+	int framesCount=0;
+	file>>framesCount;
+
+	for(int j=0; j<framesCount; j++){
+	    int frameTime=0;
+	    file>>frameTime;
+
+	    clip->addFrame(frameTime);
+
+	    int shapesCount=0;
+	    file>>shapesCount;
+
+	    clip->setShapesCountForFrame(j,shapesCount);
+
+	    for(int k=0; k<shapesCount; k++){
+		SceneShape shape;
+		int type=RECTANGLE;
+		int x=0;
+		int y=0;
+		int width=0;
+		int height=0;
+
+		file>>type;
+		file>>x;
+		file>>y;
+		file>>width;
+		file>>height;
+
+		shape.type=static_cast<ShapeType>(type);
+		shape.x=x;
+		shape.y=y;
+		shape.width=width;
+		shape.height=height;
+
+		clip->setShapeForFrame(j,k,shape);
+	    }
+	}
+    }
+
+    file.close();
 }
