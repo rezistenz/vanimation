@@ -18,6 +18,7 @@ public:
 
     void setShapesCountForFrame(int clipIndex, int frameIndex, int newShapesCount);
     void setShapeForFrame(int clipIndex, int frameIndex, int shapeIndex, SceneShape sceneShape);
+
 };
 
 #endif

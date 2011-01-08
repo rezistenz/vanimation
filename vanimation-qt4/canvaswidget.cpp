@@ -554,73 +554,6 @@ void CanvasWidget::createView(){
 
 }
 
-void CanvasWidget::saveStateChange(){
-    bool isChange=false;
-    isChange=(oldCurrentClip!=currentClip);
-    isChange=isChange || (oldCurrentFrame!=currentFrame);
-
-    //isChange=isChange && isShapesChange();
-
-    if (isChange){
-	qDebug()<<"State Change=true, Save changes in SceneModel...";
-	int chapesCount=canvas->getShapesCount();
-	controller->setShapesCountForFrame(oldCurrentClip,oldCurrentFrame,chapesCount);
-	for (int index=0;index<chapesCount;index++){
-
-	    SceneShape sceneShape=canvas->getShapeForScene(index);
-
-	    controller->setShapeForFrame(oldCurrentClip,oldCurrentFrame,index,sceneShape);
-	}
-
-	canvas->clearShapes();
-    }
-    this->canvas->update();
-
-
-}
-
-void CanvasWidget::loadState(){
-    bool isChange=false;
-    isChange=(oldCurrentClip!=currentClip);
-    isChange=isChange || (oldCurrentFrame!=currentFrame);
-
-    //isChange=isChange && isShapesChange();
-
-    if (isChange){
-	int chapesCount=view->getShapesCountForFrame(currentClip,currentFrame);
-	for (int index=0;index<chapesCount;index++){
-	    SceneShape sceneShape=view->getShapeForFrame(currentClip,currentFrame,index);
-	    canvas->addShapeFromScene(sceneShape);
-	}
-    }
-    this->canvas->update();
-
-
-}
-
-void CanvasWidget::setOperationSelect(){
-    emit changeCurrentOperation(SELECT);
-}
-
-void CanvasWidget::setOperationDrawRectangle(){
-    emit changeCurrentOperation(DRAW_RECTANGLE);
-}
-
-void CanvasWidget::setOperationDrawEllipse(){
-    emit changeCurrentOperation(DRAW_ELLIPSE);
-}
-
-void CanvasWidget::changeCurrentClip(int newCurrentClip){
-
-    oldCurrentClip=currentClip;
-    currentClip=newCurrentClip;
-
-   /* if(oldCurrentClip!=currentClip){
-	oldCurrentFrame=0;
-	currentFrame=0;
-    }*/
-}
-
 int CanvasWidget::getValidFameIndex(int frameIndex){
     int validFrameIndex=-1;
 
@@ -664,24 +597,115 @@ int CanvasWidget::getValidFameIndex(int frameIndex){
     return validFrameIndex;
 }
 
-void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
 
-    int currentFrameIndex=-1;
+void CanvasWidget::saveState(){
 
-    if (oldCurrentClip != -1){
-	currentFrameIndex=getValidFameIndex(newCurrentFrame);
+    bool changedClip=(oldCurrentClip!=currentClip);
+    //bool changedFrame=(oldCurrentFrame!=currentFrame);
+
+    qDebug()<<"State Change=true, Save changes in SceneModel...";
+
+    int chapesCount=canvas->getShapesCount();
+
+    if (changedClip){
+	controller->setShapesCountForFrame(oldCurrentClip,oldCurrentFrame,chapesCount);
+    }else{
+	controller->setShapesCountForFrame(currentClip,oldCurrentFrame,chapesCount);
     }
 
-	oldCurrentFrame=currentFrame;
-	currentFrame=currentFrameIndex;
+    for (int index=0;index<chapesCount;index++){
 
-    if (oldCurrentClip != -1){
+	SceneShape sceneShape=canvas->getShapeForScene(index);
+
+	if (changedClip){
+	    controller->setShapeForFrame(oldCurrentClip,oldCurrentFrame,index,sceneShape);
+	}else{
+	    controller->setShapeForFrame(currentClip,oldCurrentFrame,index,sceneShape);
+	}
+    }
+
+    canvas->clearShapes();
+    canvas->update();
+
+    canvas->setSelectShapeIndex(-1);
+    canvas->hide();
+}
+
+void CanvasWidget::loadState(){
+
+    int chapesCount=view->getShapesCountForFrame(currentClip,currentFrame);
+    for (int index=0;index<chapesCount;index++){
+	SceneShape sceneShape=view->getShapeForFrame(currentClip,currentFrame,index);
+	canvas->addShapeFromScene(sceneShape);
+    }
+
+
+    canvas->update();
+
+    canvas->setSelectShapeIndex(-1);
+    canvas->show();
+}
+
+void CanvasWidget::updateState(){
+    bool changedClip=false;
+    bool changedFrame=false;
+    bool isChange=false;
+    changedClip=(oldCurrentClip!=currentClip);
+    changedFrame=(oldCurrentFrame!=currentFrame);
+    isChange=changedClip || changedFrame;
+
+    if(isChange){
+
+	if (changedClip){
+	    bool b1=(oldCurrentClip != -1);
+	    bool b2=(oldCurrentFrame != -1);
+	    bool b3=b1 && b2;
+	    if ( b3 ){
+		saveState();
+	    }
+	}else{
+	    bool b1=(currentClip != -1);
+	    bool b2=(oldCurrentFrame != -1);
+	    bool b3=b1 && b2;
+
+	    if ( b3 ){
+		saveState();
+	    }
+	}
+
+
+	if ( (currentClip != -1) && (currentFrame != -1) ){
+	    loadState();
+	}
+
+    }
+}
+
+void CanvasWidget::changeCurrentClip(int newCurrentClip){
+    oldCurrentClip=currentClip;
+    currentClip=newCurrentClip;
+
+    //updateState();
+}
+
+
+void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
+
+    int	currentFrameIndex=getValidFameIndex(newCurrentFrame);
+
+    oldCurrentFrame=currentFrame;
+    currentFrame=currentFrameIndex;
+
+    updateState();
+
+    /*if (oldCurrentClip != -1){
 	if (oldCurrentFrame != -1){
 	    saveStateChange();
 
 	    canvas->setSelectShapeIndex(-1);
 	    canvas->hide();
 	}
+    }
 
 	if(currentFrame != -1){
 	    loadState();
@@ -689,27 +713,8 @@ void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
 	    canvas->setSelectShapeIndex(-1);
 	    canvas->show();
 	}
-    }
-    /*
-    if (newCurrentFrame!=-1){
-	oldCurrentFrame=currentFrame;
-	currentFrame=newCurrentFrame;
+	*/
 
-	saveStateChange();
-	loadState();
-
-	canvas->setSelectShapeIndex(-1);
-	canvas->show();
-    }else{
-	oldCurrentFrame=currentFrame;
-	currentFrame=0;
-
-	saveStateChange();
-	loadState();
-
-	canvas->setSelectShapeIndex(-1);
-	canvas->hide();
-    }*/
 
 }
 
@@ -720,3 +725,18 @@ void CanvasWidget::setDeletingOldCurrentFrame(){
     canvas->setSelectShapeIndex(-1);
     canvas->hide();
 }
+
+
+
+void CanvasWidget::setOperationSelect(){
+    emit changeCurrentOperation(SELECT);
+}
+
+void CanvasWidget::setOperationDrawRectangle(){
+    emit changeCurrentOperation(DRAW_RECTANGLE);
+}
+
+void CanvasWidget::setOperationDrawEllipse(){
+    emit changeCurrentOperation(DRAW_ELLIPSE);
+}
+

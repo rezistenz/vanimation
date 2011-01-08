@@ -25,6 +25,7 @@ private:
     void refreshTimeline();
 
     CanvasWidget *canvasWidget;
+    void refreshCanvasWidget();
 };
 
 #endif // QTSCENEVIEW_H

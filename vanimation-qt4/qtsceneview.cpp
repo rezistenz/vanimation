@@ -108,8 +108,13 @@ void QtSceneView::refreshTimeline(){
     this->timelineWidget->adjustSizeClips();
 }
 
+void QtSceneView::refreshCanvasWidget(){
+    //
+}
+
 void QtSceneView::refreshSceneView(){
     refreshTimeline();
+    refreshCanvasWidget();
 }
 
 int QtSceneView::getShapesCountForFrame(int clipIndex, int frameIndex){

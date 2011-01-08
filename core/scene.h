@@ -6,6 +6,8 @@
 
 #include <vector>
 #include "clip.h"
+#include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -27,6 +29,10 @@ class Scene {
 		static void addMaxTime();
 		static void subMaxTime();
 		Clip* getClip(int index);
+
+		void clear();
+		void saveToFile(string fileName);
+		void loadFromFile(string fileName);
 	private:
 		static TIME_TYPE maxTime;
 		vector< Clip* > clips;

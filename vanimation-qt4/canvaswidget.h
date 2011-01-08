@@ -144,8 +144,10 @@ private:
     void createView();
 
     int getValidFameIndex(int frameIndex);
-    void saveStateChange();
+    void saveState();
     void loadState();
+
+    void updateState();
 
     SceneController *controller;
     SceneView *view;

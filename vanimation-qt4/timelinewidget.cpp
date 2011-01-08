@@ -274,6 +274,9 @@ void TimelineWidget::createView(){
 
     playPanel= new PlayPanelWidget(this);
     playPanel->setSceneView(this->model->getSceneView());
+    connect(playPanel,SIGNAL(currentClipChanged(int)),this,SLOT(changeCurrentClip(int)));
+    connect(this,SIGNAL(currentClipChanged(int)),playPanel,SLOT(changeCurrentClip(int)));
+
     connect(playPanel,SIGNAL(currentFrameChanged(int)),this,SLOT(changeCurrentFrame(int)));
     connect(this,SIGNAL(currentFrameChanged(int)),playPanel,SLOT(changeCurrentFrame(int)));
     vLayout->addWidget(playPanel);
@@ -352,6 +355,7 @@ void  TimelineWidget::mouseReleaseEvent(QMouseEvent* event){
 	    this->contextMenu->exec(event->globalPos());
 	}
     }
+    this->playPanel->stop();
 }
 
 int TimelineWidget::getCountClip(){
@@ -494,6 +498,7 @@ void PlayPanelWidget::timerSlot(){
     }else{
 	this->currentFrame=1;
     }
+    emit currentClipChanged(currentClip);
     emit currentFrameChanged(currentFrame);
     lbl->setText(QString().setNum(this->currentFrame));
     QApplication::processEvents();
@@ -517,6 +522,10 @@ void PlayPanelWidget::stop(){
     state=STOP;
     timer->stop();
     //qDebug()<<timer->timerId();
+}
+
+void PlayPanelWidget::changeCurrentClip(int newCurrentClip){
+    this->currentClip=newCurrentClip;
 }
 
 void PlayPanelWidget::changeCurrentFrame(int newCurrentFrame){

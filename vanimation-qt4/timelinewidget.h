@@ -161,6 +161,7 @@ private:
     };
     States state;
 
+    int currentClip;
     int currentFrame;
 
     QPushButton* btnPlay;
@@ -171,6 +172,7 @@ private:
     QTimer* timer;
     SceneView* view;
 signals:
+    void currentClipChanged(int newCurrentClip);
     void currentFrameChanged(int newCurrentFrame);
 public slots:
     void timerSlot();
@@ -178,7 +180,9 @@ public slots:
     void pause();
     void stop();
 
+    void changeCurrentClip(int newCurrentClip);
     void changeCurrentFrame(int newCurrentFrame);
+
 };
 
 #endif // TIMELINEWIDGET_H
