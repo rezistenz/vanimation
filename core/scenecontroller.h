@@ -24,6 +24,10 @@ public:
 
 	virtual void setShapesCountForFrame(int clipIndex, int frameIndex, int newShapesCount)=0;
 	virtual void setShapeForFrame(int clipIndex, int frameIndex, int shapeIndex, SceneShape sceneShape)=0;
+
+	virtual void closeFile()=0;
+	virtual void openFile(const std::string& fileName)=0;
+	virtual void saveFile(const std::string& fileName)=0;
 protected:
 	void updateModel(UpdateModelCommand cmd);
 private:

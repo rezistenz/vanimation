@@ -19,6 +19,8 @@ public:
     int getShapesCountForFrame(int clipIndex, int frameIndex);
     SceneShape getShapeForFrame(int clipIndex, int frameIndex, int shapeIndex);
 
+    void setDefaultCanvasWidget();
+
     void refreshSceneView();
 private:
     TimelineWidget *timelineWidget;

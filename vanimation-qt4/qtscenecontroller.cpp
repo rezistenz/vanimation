@@ -59,3 +59,26 @@ void QtSceneController::setShapeForFrame(int clipIndex, int frameIndex, int shap
 
     updateModel(cmd);
 }
+
+void QtSceneController::closeFile(){
+    UpdateModelCommand cmd;
+    cmd.CMD=CLOSE_FILE;
+
+    updateModel(cmd);
+}
+
+void QtSceneController::openFile(const std::string& fileName){
+    UpdateModelCommand cmd;
+    cmd.CMD=OPEN_FILE;
+    cmd.stringData=fileName;
+
+    updateModel(cmd);
+}
+
+void QtSceneController::saveFile(const std::string& fileName){
+    UpdateModelCommand cmd;
+    cmd.CMD=SAVE_FILE;
+    cmd.stringData=fileName;
+
+    updateModel(cmd);
+}

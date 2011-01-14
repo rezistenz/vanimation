@@ -59,7 +59,11 @@ enum UpdateModelCommands{
 	SET_MAX_TIME,
 
 	SET_SHAPES_COUNT_FOR_FRAME,
-	SET_SHAPE_FOR_FRAME
+	SET_SHAPE_FOR_FRAME,
+
+	CLOSE_FILE,
+	OPEN_FILE,
+	SAVE_FILE
 };
 
 struct UpdateModelCommand{
@@ -68,6 +72,7 @@ struct UpdateModelCommand{
 	TIME_TYPE timeData;
 	PointData pointData;
 	SceneShape sceneShapeData;
+	std::string stringData;
 };
 
 class SceneView;

@@ -109,6 +109,9 @@ public:
 
     void setController(SceneController* controller);
     void setModel(SceneModel* model);
+    QMenu* contextMenu;
+
+    void checkFrame();
 private:
     QVector<ClipWidget*> clips;
     QScrollArea *scrollArea;
@@ -117,7 +120,7 @@ private:
     int currentClip;
     int currentFrame;
 
-    QMenu* contextMenu;
+
     void createContextMenu();
     void mouseReleaseEvent(QMouseEvent* event);
 
