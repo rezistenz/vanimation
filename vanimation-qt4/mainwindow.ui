@@ -48,6 +48,8 @@
     <addaction name="separator"/>
     <addaction name="actionAdd_frame"/>
     <addaction name="actionDel_frame"/>
+    <addaction name="separator"/>
+    <addaction name="actionDel_shepe"/>
    </widget>
    <addaction name="menuMain"/>
    <addaction name="menuEdit"/>
@@ -114,6 +116,11 @@
   <action name="actionDel_frame">
    <property name="text">
     <string>Del frame</string>
+   </property>
+  </action>
+  <action name="actionDel_shepe">
+   <property name="text">
+    <string>Del shepe</string>
    </property>
   </action>
  </widget>

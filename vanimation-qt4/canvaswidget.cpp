@@ -105,6 +105,30 @@ void Canvas::setSelectShapeIndex(int index){
     this->selectShapeIndex=index;
 }
 
+void Canvas::delCurrentShape(){
+    if (this->currentOperation==SELECT){
+	if ( this->selectShapeIndex != -1 ){
+
+	    Shape* shape=NULL;
+	    int curIndex=0;
+	    for( list< Shape * >::iterator shapeIter=shapes.begin(); shapeIter!=shapes.end(); shapeIter++ ){
+		if (curIndex==this->selectShapeIndex){
+		    shape=(*shapeIter);
+
+		    delete shape;
+		    shapes.erase(shapeIter);
+		    //qDebug()<<shapes.size();
+		    break;
+		}
+		curIndex++;
+	    }
+
+	    this->setSelectShapeIndex(-1);
+	}
+    }
+    this->update();
+}
+
 void Canvas::drawCanvas(QPainter &painter){
     QPen pen(Qt::NoPen);
     QBrush brash(*canvasColor);
@@ -261,6 +285,8 @@ void Canvas::paintEvent(QPaintEvent */*event*/){
 }
 
 void Canvas::mousePressEvent(QMouseEvent * event){ 
+
+if(event->button()==Qt::LeftButton){
     switch (currentOperation) {
     case SELECT:{
 	    //check clic anchors
@@ -311,7 +337,12 @@ void Canvas::mousePressEvent(QMouseEvent * event){
     this->update();
 }
 
+
+
+}
+
 void Canvas::mouseMoveEvent(QMouseEvent * event){
+//if(event->button()==Qt::LeftButton){
     switch (currentOperation) {
     case SELECT:{
 	    if (changing){
@@ -354,9 +385,13 @@ void Canvas::mouseMoveEvent(QMouseEvent * event){
 	}
     }
     this->update();
+//}
 }
 
 void Canvas::mouseReleaseEvent(QMouseEvent *event){
+
+
+if(event->button()==Qt::LeftButton){
     switch (currentOperation) {
     case SELECT:{	   
 	    if (dragging){
@@ -423,6 +458,15 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event){
 
     this->update();
 }
+else{
+    if(currentOperation==SELECT){
+	checkShapesSelect(event->pos());
+	this->update();
+	this->createContextMenu(event->globalPos());
+    }
+}
+
+}
 
 Shape * Canvas::createShape(ShapeType type,QRect rect){
     Shape *shape =NULL;
@@ -475,6 +519,20 @@ void Canvas::clearShapes(){
 void Canvas::addShapeFromScene(SceneShape sceneShape){
     Shape *shape=createShape(sceneShape.type,QRect(sceneShape.x,sceneShape.y,sceneShape.width,sceneShape.height));
     shapes.push_back(shape);
+}
+
+void Canvas::createContextMenu(const QPoint& pos){
+    if ( this->currentOperation==SELECT && this->selectShapeIndex != -1 ){
+	Shape* shape=this->getShape(this->selectShapeIndex);
+	QPoint point=this->mapFromGlobal(pos);
+
+	if ( shape->selected(point) ){
+	    QMenu menu(this);
+
+	    menu.addActions(this->actions());
+	    menu.exec(pos);
+	}
+    }
 }
 
 /*
@@ -535,6 +593,13 @@ void CanvasWidget::clearCanvas(){
     this->canvas->hide();
 }
 
+void CanvasWidget::setNewActionsForCanvas(){
+    canvas->addActions(this->actions());
+}
+
+
+
+
 
 void CanvasWidget::createView(){
     scrollArea=new QScrollArea();
@@ -576,8 +641,6 @@ void CanvasWidget::createView(){
     vLayout->addStretch();
 
     hLayout->addWidget(scrollArea);
-
-
 }
 
 int CanvasWidget::getValidFameIndex(int frameIndex){
@@ -766,3 +829,6 @@ void CanvasWidget::setOperationDrawEllipse(){
     emit changeCurrentOperation(DRAW_ELLIPSE);
 }
 
+void CanvasWidget::delCurrentShape(){
+    this->canvas->delCurrentShape();
+}

@@ -27,6 +27,12 @@ using namespace std;
 
 class Shape: public QRect{
 public:
+//    Shape(){
+//	qDebug()<<"new shape "<<this;
+//    }
+//    ~Shape(){
+//	qDebug()<<"del shape "<<this;
+//    };
     virtual void draw(QPainter &painter)=0;
     virtual bool selected(QPoint &point)=0;
     ShapeType getType();
@@ -77,6 +83,7 @@ public:
     void clearShapes();
     void addShapeFromScene(SceneShape sceneShape);
     void setSelectShapeIndex(int index);
+    void delCurrentShape();
 private:
     QColor *canvasColor;
     list <Shape *> shapes;
@@ -107,6 +114,8 @@ private:
     void drawShapes(QPainter &painter);
     void drawSelectedShape(QPainter &painter);
     void drawChangeAnchors(QPainter &painter);
+
+    void createContextMenu(const QPoint& pos);
 public slots:
     void setCurrentOperation(Operations);
 };
@@ -134,6 +143,7 @@ public:
     void setCurrentFrame(int newCurrentFrame);
     void setOldCurrentFrame(int newCurrentFrame);
     void clearCanvas();
+    void setNewActionsForCanvas();
 private:
     int canvasWidth;
     int canvasHeigth;
@@ -168,6 +178,7 @@ public slots:
     void changeCurrentClip(int newCurrentClip);
     void changeCurrentFrame(int newCurrentFrame);
     void setDeletingOldCurrentFrame();
+    void delCurrentShape();
 };
 
 #endif // CANVASWIDGET_H
