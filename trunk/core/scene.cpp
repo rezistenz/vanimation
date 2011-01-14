@@ -26,6 +26,8 @@ void Scene::clear(){
 	    delete clips.back();
 	    clips.pop_back();
     }
+
+    this->fileName.clear();
 }
 
 void Scene::addClip(){
@@ -156,4 +158,14 @@ void Scene::loadFromFile(string fileName){
     }
 
     file.close();
+
+    this->setFileName(fileName);
+}
+
+const string& Scene::getFileName(){
+    return this->fileName;
+}
+
+void Scene::setFileName(const string& newFileName){
+    this->fileName=newFileName;
 }

@@ -166,6 +166,21 @@ void SceneModel::updateModel(UpdateModelCommand cmd){
 	}
 	break;
 
+    case CLOSE_FILE:{
+	    this->scene->clear();
+	}
+	break;
+
+    case OPEN_FILE:{
+	    this->scene->loadFromFile(cmd.stringData);
+	}
+	break;
+
+    case SAVE_FILE:{
+	    this->scene->saveToFile(cmd.stringData);
+	}
+	break;
+
     default:{
             cerr<<"ERROR! UpdateModelCommand not found."<<endl;
             exit(EXIT_FAILURE);

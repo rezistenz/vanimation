@@ -128,6 +128,12 @@ public:
     explicit CanvasWidget(QWidget *parent = 0);
     void setSceneController(SceneController *newController);
     void setSceneView(SceneView *newView);
+
+    void setCurrentClip(int newCurrentClip);
+    void setOldCurrentClip(int newCurrentClip);
+    void setCurrentFrame(int newCurrentFrame);
+    void setOldCurrentFrame(int newCurrentFrame);
+    void clearCanvas();
 private:
     int canvasWidth;
     int canvasHeigth;

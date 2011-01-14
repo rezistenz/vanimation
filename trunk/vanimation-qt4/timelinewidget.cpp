@@ -310,7 +310,7 @@ void TimelineWidget::createView(){
 
 void TimelineWidget::createContextMenu(){
     this->contextMenu=new QMenu(this);
-    this->contextMenu->addAction("Add clip");
+    /*this->contextMenu->addAction("Add clip");
     this->contextMenu->addAction("Del clip");
     this->contextMenu->addSeparator();
     this->contextMenu->addAction("Add frame");
@@ -321,37 +321,53 @@ void TimelineWidget::createContextMenu(){
 
     connect(contextMenu->actions().at(3),SIGNAL(triggered()),this,SLOT(addFrameSlot()));
     connect(contextMenu->actions().at(4),SIGNAL(triggered()),this,SLOT(delFrameSlot()));
+*/
+}
+
+void TimelineWidget::checkFrame(){
+    contextMenu->actions().at(0)->setEnabled(true);
+    contextMenu->actions().at(1)->setEnabled(false);
+    contextMenu->actions().at(3)->setEnabled(true);
+    contextMenu->actions().at(4)->setEnabled(false);
+
+    if (this->currentClip != -1){
+	contextMenu->actions().at(1)->setEnabled(true);
+    }
+
+    if ( this->getValidFameIndex(this->currentFrame) != -1 ){
+	contextMenu->actions().at(4)->setEnabled(false);
+    }
 }
 
 void  TimelineWidget::mouseReleaseEvent(QMouseEvent* event){
-    if (event->button()==Qt::RightButton){
-	if ( scrollArea->viewport()->rect().contains( event->pos() )  ){
-
-	    contextMenu->actions().at(0)->setEnabled(true);
-	    contextMenu->actions().at(1)->setEnabled(false);
-	    contextMenu->actions().at(3)->setEnabled(false);
-	    contextMenu->actions().at(4)->setEnabled(false);
+    contextMenu->actions().at(0)->setEnabled(true);
+    contextMenu->actions().at(1)->setEnabled(false);
+    contextMenu->actions().at(3)->setEnabled(false);
+    contextMenu->actions().at(4)->setEnabled(false);
 
 
-	    for(QVector<ClipWidget*>::iterator iter=clips.begin();iter!=clips.end();iter++){
-		ClipWidget *clip=*iter;
-		QPoint point(event->globalPos());
-		QRect rect(
-			    clip->mapToGlobal(clip->rect().topLeft()),
-			    clip->mapToGlobal(clip->rect().bottomRight())
-			   );
-		if( rect.contains(point) ){
-		    contextMenu->actions().at(1)->setEnabled(true);
-		    contextMenu->actions().at(3)->setEnabled(true);
+    for(QVector<ClipWidget*>::iterator iter=clips.begin();iter!=clips.end();iter++){
+	ClipWidget *clip=*iter;
+	QPoint point(event->globalPos());
+	QRect rect(
+		clip->mapToGlobal(clip->rect().topLeft()),
+		clip->mapToGlobal(clip->rect().bottomRight())
+		);
+	if( rect.contains(point) ){
+	    contextMenu->actions().at(1)->setEnabled(true);
+	    contextMenu->actions().at(3)->setEnabled(true);
 
-		    if(clip->inFrame(point)){
-			contextMenu->actions().at(4)->setEnabled(true);
-		    }
-
-		    break;
-		}
+	    if(clip->inFrame(point)){
+		contextMenu->actions().at(4)->setEnabled(true);
 	    }
 
+	    break;
+	}
+    }
+
+
+    if (event->button()==Qt::RightButton){
+	if ( scrollArea->viewport()->rect().contains( event->pos() )  ){
 	    this->contextMenu->exec(event->globalPos());
 	}
     }

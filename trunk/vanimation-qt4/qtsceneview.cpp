@@ -143,3 +143,12 @@ SceneShape QtSceneView::getShapeForFrame(int clipIndex, int frameIndex, int shap
     SceneShape sceneShape=state.sceneShapeData;
     return sceneShape;
 }
+
+void QtSceneView::setDefaultCanvasWidget(){
+    this->canvasWidget->setCurrentClip(-1);
+    this->canvasWidget->setOldCurrentClip(-1);
+    this->canvasWidget->setCurrentFrame(-1);
+    this->canvasWidget->setOldCurrentFrame(-1);
+
+    this->canvasWidget->clearCanvas();
+}

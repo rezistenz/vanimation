@@ -33,9 +33,14 @@ class Scene {
 		void clear();
 		void saveToFile(string fileName);
 		void loadFromFile(string fileName);
+
+		const string& getFileName();
+		void setFileName(const string& newFileName);
 	private:
 		static TIME_TYPE maxTime;
 		vector< Clip* > clips;
+
+		string fileName;
 };
 
 #endif

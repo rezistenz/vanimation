@@ -31,6 +31,13 @@ private:
     SceneModel *model;
     QtSceneView *view;
     QtSceneController *controller;
+public slots:
+    void exit();
+    void closeFile();
+    void newFile();
+    void openFile();
+    void saveFile();
+    void saveFileAs();
 };
 
 #endif // MAINWINDOW_H

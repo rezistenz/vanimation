@@ -510,6 +510,32 @@ void CanvasWidget::setSceneView(SceneView *newView){
     view=newView;
 }
 
+
+void CanvasWidget::setCurrentClip(int newCurrentClip){
+    this->currentClip=newCurrentClip;
+}
+
+void CanvasWidget::setOldCurrentClip(int newCurrentClip){
+    this->oldCurrentClip=newCurrentClip;
+}
+
+void CanvasWidget::setCurrentFrame(int newCurrentFrame){
+    this->currentFrame=newCurrentFrame;
+}
+
+void CanvasWidget::setOldCurrentFrame(int newCurrentFrame){
+    this->oldCurrentFrame=newCurrentFrame;
+}
+
+
+
+void CanvasWidget::clearCanvas(){
+    this->canvas->clearShapes();
+    this->canvas->setSelectShapeIndex(-1);
+    this->canvas->hide();
+}
+
+
 void CanvasWidget::createView(){
     scrollArea=new QScrollArea();
     canvas=new Canvas(this);
