@@ -88,6 +88,9 @@ MainWindow::MainWindow(QWidget *parent) :
     view->refreshSceneView();
 */
     tl->contextMenu->addActions(ui->menuEdit->actions());
+    cw->addAction(ui->actionDel_shepe);
+    cw->setNewActionsForCanvas();
+
     QObject::connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(exit()));
     QObject::connect(ui->actionCloseFile,SIGNAL(triggered()),this,SLOT(closeFile()));
     QObject::connect(ui->actionNew,SIGNAL(triggered()),this,SLOT(newFile()));
@@ -99,6 +102,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionDel_clip,SIGNAL(triggered()),tl,SLOT(delClipSlot()));
     QObject::connect(ui->actionAdd_frame,SIGNAL(triggered()),tl,SLOT(addFrameSlot()));
     QObject::connect(ui->actionDel_frame,SIGNAL(triggered()),tl,SLOT(delFrameSlot()));
+    QObject::connect(ui->actionDel_shepe,SIGNAL(triggered()),cw,SLOT(delCurrentShape()));
 
     this->ui->actionSave->setEnabled(false);
     this->ui->actionSave_As->setEnabled(false);
@@ -111,6 +115,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->tl->hide();
     this->cw->hide();
+
+    this->openFile();
 }
 
 MainWindow::~MainWindow()
