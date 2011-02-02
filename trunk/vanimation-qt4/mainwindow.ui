@@ -49,7 +49,7 @@
     <addaction name="actionAdd_frame"/>
     <addaction name="actionDel_frame"/>
     <addaction name="separator"/>
-    <addaction name="actionDel_shepe"/>
+    <addaction name="actionDel_shape"/>
    </widget>
    <addaction name="menuMain"/>
    <addaction name="menuEdit"/>
@@ -118,9 +118,9 @@
     <string>Del frame</string>
    </property>
   </action>
-  <action name="actionDel_shepe">
+  <action name="actionDel_shape">
    <property name="text">
-    <string>Del shepe</string>
+    <string>Del shape</string>
    </property>
   </action>
  </widget>
