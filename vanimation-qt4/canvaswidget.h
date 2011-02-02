@@ -27,17 +27,16 @@ using namespace std;
 
 class Shape: public QRect{
 public:
-//    Shape(){
-//	qDebug()<<"new shape "<<this;
-//    }
-//    ~Shape(){
-//	qDebug()<<"del shape "<<this;
-//    };
+    Shape();
     virtual void draw(QPainter &painter)=0;
     virtual bool selected(QPoint &point)=0;
     ShapeType getType();
+
+    bool getEnabled();
+    void setEnabled(bool enabled);
 protected:
     ShapeType type;
+    bool enabled;
 };
 
 class Rectangle: public Shape{
@@ -81,7 +80,8 @@ public:
     int getShapesCount();
     SceneShape getShapeForScene(int index);
     void clearShapes();
-    void addShapeFromScene(SceneShape sceneShape);
+    void delAllDisabledShapes();
+    void addShapeFromScene(SceneShape sceneShape, bool enabled);
     void setSelectShapeIndex(int index);
     void delCurrentShape();
 private:
@@ -154,12 +154,14 @@ private:
     int currentClip;
     int currentFrame;
 
+    int currentFrameForBack;
+
     int oldCurrentClip;
     int oldCurrentFrame;
 
     void createView();
 
-    int getValidFameIndex(int frameIndex);
+    int getValidFameIndex(int clipIndex, int frameIndex);
     void saveState();
     void loadState();
 

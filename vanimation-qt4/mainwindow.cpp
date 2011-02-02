@@ -85,10 +85,18 @@ MainWindow::MainWindow(QWidget *parent) :
     scene->saveToFile("file.txt");
     scene->loadFromFile("file1.txt");
 
+    tl->changeCurrentClip(0);
+    tl->changeCurrentFrame(0);
+
     view->refreshSceneView();
 */
-    tl->contextMenu->addActions(ui->menuEdit->actions());
-    cw->addAction(ui->actionDel_shepe);
+    tl->contextMenu->addAction(ui->actionAdd_clip);
+    tl->contextMenu->addAction(ui->actionDel_clip);
+    tl->contextMenu->addSeparator();
+    tl->contextMenu->addAction(ui->actionAdd_frame);
+    tl->contextMenu->addAction(ui->actionDel_frame);
+
+    cw->addAction(ui->actionDel_shape);
     cw->setNewActionsForCanvas();
 
     QObject::connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(exit()));
@@ -102,7 +110,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionDel_clip,SIGNAL(triggered()),tl,SLOT(delClipSlot()));
     QObject::connect(ui->actionAdd_frame,SIGNAL(triggered()),tl,SLOT(addFrameSlot()));
     QObject::connect(ui->actionDel_frame,SIGNAL(triggered()),tl,SLOT(delFrameSlot()));
-    QObject::connect(ui->actionDel_shepe,SIGNAL(triggered()),cw,SLOT(delCurrentShape()));
+    QObject::connect(ui->actionDel_shape,SIGNAL(triggered()),cw,SLOT(delCurrentShape()));
 
     this->ui->actionSave->setEnabled(false);
     this->ui->actionSave_As->setEnabled(false);
@@ -113,10 +121,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->ui->actionAdd_frame->setEnabled(false);
     this->ui->actionDel_frame->setEnabled(false);
 
+    this->ui->actionDel_shape->setEnabled(false);
+
     this->tl->hide();
     this->cw->hide();
 
-    this->openFile();
+    //this->openFile();
 }
 
 MainWindow::~MainWindow()
@@ -183,29 +193,30 @@ void  MainWindow::newFile(){
 }
 
 void MainWindow::openFile(){    
-    QString fileName = QFileDialog::getOpenFileName(this,
-	 tr("Open..."), "", tr("Text files (*.txt)"));
+    QString fileName = QFileDialog::getOpenFileName(this,tr("Open..."), "", tr("Text files (*.txt)"));
     if (!fileName.isEmpty()){
 	this->closeFile();
-	this->controller->openFile(fileName.toStdString());
+	string str=fileName.toUtf8().data();
+	this->controller->openFile(str);
+
+
+	this->ui->actionAdd_clip->setEnabled(true);
+
+	if (this->tl->getCountClip()>0){
+	    this->tl->changeCurrentClip(0);
+	    this->tl->changeCurrentFrame(0);
+
+	    this->tl->checkFrame();
+	}
+	this->ui->actionSave->setEnabled(true);
+	this->ui->actionSave_As->setEnabled(true);
+	this->ui->actionCloseFile->setEnabled(true);
+
+	this->tl->show();
+	this->cw->show();
+
+	view->refreshSceneView();
     }
-
-    this->ui->actionAdd_clip->setEnabled(true);
-
-    if (this->tl->getCountClip()>0){
-	this->tl->changeCurrentClip(0);
-	this->tl->changeCurrentFrame(0);
-
-	this->tl->checkFrame();
-    }
-    this->ui->actionSave->setEnabled(true);
-    this->ui->actionSave_As->setEnabled(true);
-    this->ui->actionCloseFile->setEnabled(true);
-
-    this->tl->show();
-    this->cw->show();
-
-    view->refreshSceneView();
 }
 
 void MainWindow::saveFile(){
@@ -213,9 +224,10 @@ void MainWindow::saveFile(){
 
     if ( oldFile.empty() ){
 	QString fileName = QFileDialog::getSaveFileName(this,tr("Save..."), "", tr("Text files (*.txt)"));
+	string str=fileName.toUtf8().data();
 	if (!fileName.isEmpty()){
-	    this->controller->saveFile(fileName.toStdString());
-	    this->model->getScene()->setFileName(fileName.toStdString());
+	    this->controller->saveFile(str);
+	    this->model->getScene()->setFileName(str);
 	}
     }else{
 	this->controller->saveFile(oldFile);
@@ -230,7 +242,9 @@ void MainWindow::saveFileAs(){
 
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save As..."), "", tr("Text files (*.txt)"));
     if (!fileName.isEmpty()){
-	this->controller->saveFile(fileName.toStdString());
+	string str;
+	str=fileName.toUtf8().data();
+	this->controller->saveFile(str);
     }
 
     this->ui->actionSave->setEnabled(true);

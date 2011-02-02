@@ -8,8 +8,20 @@
 =================================================================
 */
 
+Shape::Shape(){
+    enabled=true;
+}
+
 ShapeType Shape::getType(){
     return type;
+}
+
+bool Shape::getEnabled(){
+    return this->enabled;
+}
+
+void Shape::setEnabled(bool enabled){
+    this->enabled=enabled;
 }
 
 Rectangle::Rectangle(){
@@ -17,7 +29,7 @@ Rectangle::Rectangle(){
 }
 
 void Rectangle::draw(QPainter &painter){
-    painter.setPen(QPen(QBrush(Qt::black),1));
+    //painter.setPen(QPen(QBrush(Qt::black),1));
     //painter.setBrush(QBrush(Qt::red));
     painter.drawRect(left(),top(),width(),height());
 }
@@ -31,7 +43,7 @@ Ellipse::Ellipse(){
 }
 
 void Ellipse::draw(QPainter &painter){
-    painter.setPen(QPen(QBrush(Qt::black),1));
+    //painter.setPen(QPen(QBrush(Qt::black),1));
     //painter.setBrush(QBrush(Qt::red));
     painter.drawEllipse(left(),top(),width(),height());
 }
@@ -208,11 +220,24 @@ void Canvas::drawCanvas(QPainter &painter){
 void Canvas::drawShapes(QPainter &painter){
     int index=0;
     for( list< Shape * >::iterator shape=shapes.begin(); shape!=shapes.end(); shape++ ){
+	painter.setPen(QPen(QBrush(Qt::black),1,Qt::SolidLine));
 	painter.setBrush(QBrush(Qt::white));
+
 	if (index==this->selectShapeIndex){
 	    drawSelectedShape(painter);
 	}else{
-	    (*shape)->draw(painter);
+	    if ( (*shape)->getEnabled() ){
+		(*shape)->draw(painter);
+	    }else{
+		painter.setPen(QPen(Qt::NoPen));
+		QColor color(Qt::white);
+		color.setAlpha(200);
+		painter.setBrush(QBrush(color));
+		(*shape)->draw(painter);
+		painter.setPen(QPen(QBrush(Qt::gray),1,Qt::DotLine));
+		painter.setBrush(QBrush(Qt::gray,Qt::Dense6Pattern));
+		(*shape)->draw(painter);
+	    }
 	}
 	index++;
     }
@@ -255,14 +280,18 @@ void Canvas::checkShapesSelect(QPoint pos){
     bool select=false;
     int index=shapes.size()-1;
     for( list< Shape * >::reverse_iterator shape=shapes.rbegin(); shape!=shapes.rend(); shape++ ){
-	select=(*shape)->selected(pos);
-	if (select){
-	    selectShapeIndex=index;
-	    return;
+	if( (*shape)->getEnabled() ){
+	    select=(*shape)->selected(pos);
+	    if (select){
+		selectShapeIndex=index;
+		this->actions().at(0)->setEnabled(true);
+		return;
+	    }
 	}
 	index--;
     }
     selectShapeIndex=-1;
+    this->actions().at(0)->setEnabled(false);
 }
 
 bool Canvas::clickChangeAnchors(QPoint pos){
@@ -516,8 +545,24 @@ void Canvas::clearShapes(){
     }
 }
 
-void Canvas::addShapeFromScene(SceneShape sceneShape){
+void Canvas::delAllDisabledShapes(){
+    list<Shape*>::iterator iter=shapes.begin();
+
+    while(iter!=shapes.end()){
+	Shape* shape=*iter;
+
+	if(!shape->getEnabled()){
+	    delete shape;
+	    iter=shapes.erase(iter);
+	}else{
+	    iter++;
+	}
+    }
+}
+
+void Canvas::addShapeFromScene(SceneShape sceneShape, bool enabled){
     Shape *shape=createShape(sceneShape.type,QRect(sceneShape.x,sceneShape.y,sceneShape.width,sceneShape.height));
+    shape->setEnabled(enabled);
     shapes.push_back(shape);
 }
 
@@ -530,6 +575,7 @@ void Canvas::createContextMenu(const QPoint& pos){
 	    QMenu menu(this);
 
 	    menu.addActions(this->actions());
+	    this->actions().at(0)->setEnabled(true);
 	    menu.exec(pos);
 	}
     }
@@ -556,6 +602,8 @@ CanvasWidget::CanvasWidget(QWidget *parent){
 
     oldCurrentClip=-1;
     oldCurrentFrame=-1;
+
+    currentFrameForBack=-1;
 
     createView();
 }
@@ -643,7 +691,7 @@ void CanvasWidget::createView(){
     hLayout->addWidget(scrollArea);
 }
 
-int CanvasWidget::getValidFameIndex(int frameIndex){
+int CanvasWidget::getValidFameIndex(int clipIndex, int frameIndex){
     int validFrameIndex=-1;
 
     SceneModel *model=view->getSceneModel();
@@ -652,13 +700,13 @@ int CanvasWidget::getValidFameIndex(int frameIndex){
     ModelState state;
 
     cmd.CMD=GET_CLIP_FRAME_COUNT;
-    cmd.intData=currentClip;
+    cmd.intData=clipIndex;
     state=model->getStateModel(cmd);
     int frameCount=state.intData;
 
     for(int index=0;index<frameCount;index++){
 	cmd.CMD=GET_CLIP_FRAME_TIME;
-	cmd.pointData.x=currentClip;
+	cmd.pointData.x=clipIndex;
 	cmd.pointData.y=index;
 
 	state=model->getStateModel(cmd);
@@ -667,7 +715,7 @@ int CanvasWidget::getValidFameIndex(int frameIndex){
 	if ( (index+1)!=frameCount ){
 
 	    cmd.CMD=GET_CLIP_FRAME_TIME;
-	    cmd.pointData.x=currentClip;
+	    cmd.pointData.x=clipIndex;
 	    cmd.pointData.y=index+1;
 
 	    state=model->getStateModel(cmd);
@@ -693,6 +741,8 @@ void CanvasWidget::saveState(){
     //bool changedFrame=(oldCurrentFrame!=currentFrame);
 
     qDebug()<<"State Change=true, Save changes in SceneModel...";
+
+    canvas->delAllDisabledShapes();
 
     int chapesCount=canvas->getShapesCount();
 
@@ -722,21 +772,61 @@ void CanvasWidget::saveState(){
 
 void CanvasWidget::loadState(){
 
-    int chapesCount=view->getShapesCountForFrame(currentClip,currentFrame);
+    /*int chapesCount=view->getShapesCountForFrame(currentClip,currentFrame);
     for (int index=0;index<chapesCount;index++){
 	SceneShape sceneShape=view->getShapeForFrame(currentClip,currentFrame,index);
 	canvas->addShapeFromScene(sceneShape);
-    }
+    }*/
 
+    int clipCount=view->getSceneModel()->getScene()->getClipCount();
+    for(int indexClip=0;indexClip<clipCount;indexClip++){
+	int frameIndex=this->getValidFameIndex(indexClip, this->currentFrameForBack);
+
+	if( frameIndex != -1 ){
+	    int chapesCount=view->getShapesCountForFrame(indexClip,frameIndex);
+	    for (int indexShape=0;indexShape<chapesCount;indexShape++){
+		SceneShape sceneShape=view->getShapeForFrame(indexClip,frameIndex,indexShape);
+		if(indexClip==this->currentClip){
+		    canvas->addShapeFromScene(sceneShape,true);
+		}else{
+		    canvas->addShapeFromScene(sceneShape,false);
+		}
+	    }
+	}
+
+    }
 
     canvas->update();
 
     canvas->setSelectShapeIndex(-1);
+    canvas->actions().at(0)->setEnabled(false);
     canvas->show();
 }
 
 void CanvasWidget::updateState(){
-    bool changedClip=false;
+
+    bool changedClip=(oldCurrentClip!=currentClip);
+
+    if(changedClip){
+	if( (oldCurrentClip != -1) && (oldCurrentFrame != -1) ){
+	    saveState();
+	}
+    }else{
+	if( (currentClip != -1) && (oldCurrentFrame != -1) ){
+	    saveState();
+	}
+    }
+
+    canvas->clearShapes();
+    loadState();
+
+
+
+
+
+
+
+    /*bool changedClip=false;
     bool changedFrame=false;
     bool isChange=false;
     changedClip=(oldCurrentClip!=currentClip);
@@ -761,50 +851,29 @@ void CanvasWidget::updateState(){
 		saveState();
 	    }
 	}
-
-
-	if ( (currentClip != -1) && (currentFrame != -1) ){
-	    loadState();
-	}
-
     }
+
+    if ( (currentClip != -1) && (currentFrame != -1) ){
+	canvas->clearShapes();
+	loadState();
+    }*/
 }
 
 void CanvasWidget::changeCurrentClip(int newCurrentClip){
     oldCurrentClip=currentClip;
     currentClip=newCurrentClip;
-
-    //updateState();
 }
 
 
 void CanvasWidget::changeCurrentFrame(int newCurrentFrame){
+    this->currentFrameForBack=newCurrentFrame;
 
-    int	currentFrameIndex=getValidFameIndex(newCurrentFrame);
+    int	currentFrameIndex=getValidFameIndex(this->currentClip,newCurrentFrame);
 
     oldCurrentFrame=currentFrame;
     currentFrame=currentFrameIndex;
 
     updateState();
-
-    /*if (oldCurrentClip != -1){
-	if (oldCurrentFrame != -1){
-	    saveStateChange();
-
-	    canvas->setSelectShapeIndex(-1);
-	    canvas->hide();
-	}
-    }
-
-	if(currentFrame != -1){
-	    loadState();
-
-	    canvas->setSelectShapeIndex(-1);
-	    canvas->show();
-	}
-	*/
-
-
 }
 
 void CanvasWidget::setDeletingOldCurrentFrame(){
